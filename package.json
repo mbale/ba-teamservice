@@ -1,0 +1,48 @@
+{
+   "name": "ba-teamservice",
+   "version": "1.0.0",
+   "main": "build/main.js",
+   "author": "Balazs Mocsai <me@bael.me>",
+   "license": "MIT",
+   "scripts": {
+      "start": "ts-node src/index.ts",
+      "dev": "backpack dev",
+      "build": "backpack build",
+      "unit-test": "ts-node src/test/runner.ts"
+   },
+   "devDependencies": {
+      "@types/bull": "^3.0.1",
+      "@types/country-list": "^1.1.0",
+      "@types/dotenv": "^4.0.1",
+      "@types/koa": "^2.0.39",
+      "@types/koa-bodyparser": "^3.0.25",
+      "@types/koa-router": "^7.0.23",
+      "@types/mongodb": "^2.2.14",
+      "@types/node": "^8.0.29",
+      "@types/reflect-metadata": "^0.0.5",
+      "alsatian": "^2.0.0",
+      "awesome-typescript-loader": "^3.2.3",
+      "backpack-core": "^0.4.3",
+      "reflect-metadata": "^0.1.10",
+      "tslint-config-airbnb": "^5.3.0",
+      "typemoq": "^2.1.0",
+      "typescript": "2.5.2"
+   },
+   "dependencies": {
+      "axios": "^0.17.0",
+      "bull": "^3.3.3",
+      "country-list": "^1.1.0",
+      "dotenv": "^4.0.0",
+      "immutable": "^3.8.2",
+      "koa": "^2.3.0",
+      "koa-bodyparser": "^4.2.0",
+      "koa-multer": "^1.0.2",
+      "koa-router": "^7.2.1",
+      "mongodb": "^2.2.33",
+      "routing-controllers": "^0.7.6",
+      "talisman": "^0.20.0",
+      "typedi": "^0.5.2",
+      "typeorm": "0.1.1",
+      "wikijs": "^4.4.0"
+   }
+}
