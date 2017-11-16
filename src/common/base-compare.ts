@@ -29,7 +29,6 @@ enum ModeResultType {
 
 interface CompareModeResult {
   type : ModeResultType;
-  entity? : BaseEntity;
 }
 
 /**
@@ -86,12 +85,12 @@ export interface CompareSettings {
 }
 
 export interface CompareResult {
-  mode : CompareMode;
-  result? : CompareModeResult;
+  result : CompareModeResult;
 }
 
 export interface EntitySimilarity {
   entity : BaseEntity;
+  connection : ModeResultType;
   dice: number;
 }
 
@@ -163,12 +162,20 @@ abstract class BaseCompare {
     }
   }
 
-  public runOnEntity(unit : string, entityToCompare : BaseEntity) : CompareResult {
+  /**
+   * Compare unit with entity
+   * 
+   * @param {string} unit 
+   * @param {BaseEntity} entity 
+   * @returns {CompareResult} 
+   * @memberof BaseCompare
+   */
+  public compareUnitWithEntity(unit : string, entity : BaseEntity) {
     if (!unit) {
       throw new Error('Missing unit to test');
     }
 
-    if (!entityToCompare) {
+    if (!entity) {
       throw new Error('Missing entity to compare');
     }
 
@@ -185,110 +192,88 @@ abstract class BaseCompare {
       StrictAndSimilar,
     } = CompareMode;
 
+    enum CompareModes {
+      Strict, Similar,
+    }
+
+    interface RelatedEntity {
+      /**
+       * Entity which unit is related to
+       * 
+       * @type {BaseEntity}
+       * @memberof RelatedEntity
+       */
+      entity : BaseEntity;
+      /**
+       * Relation type which shows how it relates in comparison
+       * strict | similar
+       * 
+       * @type {CompareModes}
+       * @memberof RelatedEntity
+       */
+      relationType : CompareModes;
+      /**
+       * KeyType which shows what key is our base on comparison
+       * 
+       * @type {(ModeResultType.MainIdentifierMatch | ModeResultType.KeywordIdentifierMatch)}
+       * @memberof RelatedEntity
+       */
+      keyType : ModeResultType.MainIdentifierMatch | ModeResultType.KeywordIdentifierMatch;
+      /**
+       * KeyValue which contains the value of relation key
+       * 
+       * @type {string}
+       * @memberof RelatedEntity
+       */
+      keyValue : string;
+      /**
+       * Contains the value of dice comparison only if similar algorithm ran
+       * 
+       * @type {number}
+       * @memberof RelatedEntity
+       */
+      diceIndex? : number;
+    }
+
+    let relatedEntities = List<RelatedEntity>();
+
     if (mode === StrictOnly || mode === StrictAndSimilar) {
-      const {
-        type,
-      } = this.strictCompare(entityToCompare);
+      const { type, value }  = this.strictCompare(entity);
 
-      if (type === ModeResultType.MainIdentifierMatch) {
-
+      switch (type) {
+        case ModeResultType.MainIdentifierMatch:
+          relatedEntities = relatedEntities.push({
+            entity,
+            relationType: CompareModes.Strict,
+            keyType: ModeResultType.MainIdentifierMatch,
+            keyValue: value,
+          });
+          break;
+        case ModeResultType.KeywordIdentifierMatch:
+          relatedEntities = relatedEntities.push({
+            entity,
+            relationType: CompareModes.Strict,
+            keyType: ModeResultType.KeywordIdentifierMatch,
+            keyValue: value,
+          });
+        default:
+          break;
       }
     }
 
     if (mode === SimilarOnly || mode === StrictAndSimilar) {
-
+      const r = this.similarCompare(entity);
     }
 
+    if (relatedEntities.count() !== 0) {
+      console.log(relatedEntities.first())
+    }
     return ;
   }
 
-  /**
-   * The callable interface to run (extended) compare service on collections
-   * 
-   * @param {string} unit 
-   * @param {CompareSettings} [compareSettings] 
-   * @returns {CompareResult} 
-   * @memberof BaseCompare
-   */
-  // public runOnCollection(unit : string, compareSettings? : CompareSettings) : CompareResult {
-  //   // const keywordIdentifierMatch = this.collection
-  //   //   .find(entity => List(entity._keywords).contains(this.unit.toLowerCase()));
-  //   if (!unit) {
-  //     throw new Error('Missing unit to test');
-  //   }
-  //   if (compareSettings) {
-  //     this.compareSettings = compareSettings;
-  //   }
-
-  //   this.unit = unit;
-
-  //   const {
-  //     mode,
-  //     thresholds,
-  //   } = this.compareSettings;
-
-  //   let result : SimilarCompareModeResult | StrictCompareModeResult = null;
-
-  //   if (mode === CompareMode.StrictOnly || mode === CompareMode.StrictAndSimilar) {
-  //     result 
-  //   }
-
-  //   /*
-  //     Strict phase
-  //   */
-  //   // if (mode === CompareMode.StrictOnly || mode === CompareMode.StrictAndSimilar) {
-  //   //   const strictCompareResult = this.strictCompare();
-
-  //   //   result = strictCompareResult;
-
-  //   //   if (strictCompareResult.type === ModeResultType.NoMatch) {
-  //   //     this._entitiesToSave = this._entitiesToSave.push(strictCompareResult.entity);
-  //   //   }
-      
-  //   //   if (strictCompareResult.type === ModeResultType.MainIdentifierMatch 
-  //   //     || strictCompareResult.type === ModeResultType.KeywordIdentifier) {
-  //   //     this.relatedStrictEntities = this.relatedStrictEntities.push(strictCompareResult.entity);
-  //   //   }
-  //   // }
-
-  //   // /*
-  //   //   Similar phase
-  //   // */
-  //   // if (mode === CompareMode.SimilarOnly || mode === CompareMode.StrictAndSimilar) {
-  //   //   const similarCompareResult = this.similarCompare();
-
-  //   //   result = similarCompareResult;
-
-  //   //   if (similarCompareResult.type === ModeResultType.NoMatch) {
-  //   //     this._entitiesToSave = this._entitiesToSave.push(similarCompareResult.entity);
-  //   //   }
-
-  //   //   if (similarCompareResult.type === ModeResultType.MainIdentifierMatch 
-  //   //     || similarCompareResult.type === ModeResultType.KeywordIdentifier) {
-  //   //     this.relatedSimilarEntities =
-  //   //         this.relatedSimilarEntities.push(similarCompareResult.entity);
-  //   //   }
-  //   // }
-
-  //   if (this.relatedStrictEntities.count() !== 0) {
-  //     return {
-  //       result,
-  //       mode,
-  //     };
-  //   }
-
-  //   if (this.relatedSimilarEntities.count() !== 0) {
-  //     return {
-  //       result,
-  //       mode,
-  //     };
-  //   }
-
-  //   return {
-  //     mode,
-  //     result,
-  //   };
-  // }
+  public rankByOverall() {
+    
+  }
 
   /**
    * Get similarity number between two unit
@@ -363,30 +348,35 @@ abstract class BaseCompare {
    * @returns {StrictCompareModeResult} 
    * @memberof BaseCompare
    */
-  protected strictCompare(entityToCompare : BaseEntity) : StrictCompareModeResult {
-    if (!entityToCompare) {
-      throw new Error('Missing entity');
-    }
+  protected strictCompare(entity : BaseEntity) {
+    const unit = this.unit;
+    const keywords = List(entity._keywords);
     // we first check if we've the same by name
-    const MainIdentifierMatchMatch = entityToCompare.name.toLowerCase() === this.unit.toLowerCase();
+    const MainIdentifierMatchMatch = entity.name.toLowerCase() === unit.toLowerCase();
     // then we also check keywords
-    const keywords = List(entityToCompare._keywords);
-    const keywordIdentifierMatch = keywords.contains(this.unit.toLowerCase());
+    const keywordIdentifierMatch = keywords.contains(unit.toLowerCase());
 
     if (MainIdentifierMatchMatch) {
+      // get value
+      const mainValue = entity.name;
       return {
         type: ModeResultType.MainIdentifierMatch,
+        value: mainValue,
       };
     }
 
     if (keywordIdentifierMatch) {
+      // get that keyword
+      const keywordValue = keywords.find(keyword => keyword === unit.toLowerCase());
       return {
         type: ModeResultType.KeywordIdentifierMatch,
+        value: keywordValue,
       };
     }
 
     return {
       type: ModeResultType.NoMatch,
+      value : null,
     };
   }
 
@@ -397,48 +387,41 @@ abstract class BaseCompare {
    * @returns {SimilarCompareModeResult} 
    * @memberof BaseCompare
    */
-  // protected similarCompare(entityToCompare : BaseEntity) : SimilarCompareModeResult {
-  //   const MainIdentifierMatchMatch = this.collection
-  //     .filter(entity => 
-  //         this.compareTwoUnits(entity.name, this.unit) >= this.compareSettings.thresholds.dice,
-  //       )
-  //       .sort((a, b) => 
-  //         this.compareTwoUnits(a.name, b.name) - this.compareTwoUnits(b.name, a.name),
-  //       )
-  //       .first();
+  protected similarCompare(entity : BaseEntity) {
+    const unit = this.unit;
+    const diceThreshold = this.compareSettings.thresholds.dice;
+    const keywords = List(entity._keywords);
 
-  //   if (MainIdentifierMatchMatch) {
-  //     return {
-  //       type: ModeResultType.MainIdentifierMatch,
-  //       entity: MainIdentifierMatchMatch,
-  //       collision: MainIdentifierMatchMatch.name,
-  //     };
-  //   }
+    const mainIdentifierSimilarity = this.compareTwoUnits(entity.name, unit);
 
-  //   const keywordIdentifierMatch = this.collection
-  //     // filter by criteria (threshold)
-  //     .filter(entity => this.filterListByThreshold(List(entity._keywords)))
-  //     // reorder teams's keyword field by dice value
-  //     .map((entity) => {
-  //       entity._keywords = this.sortEntitiesBySimilarity(List(entity._keywords)).toArray();
-  //       return entity;
-  //     })
-  //     // reorder teams by it's keyword dice values
-  //     .sort((a, b) => this.sortEntitiesByKeywordIdentifier(a._keywords, b._keywords))
-  //     .last();
+    const keywordsIndexed = keywords
+      // calculate their indexes
+      .map((keyword) => {
+        return {
+          keyword,
+          value: this.compareTwoUnits(keyword, unit),
+        };
+      })
+      // remove invalids
+      .filter(keywordIndexed => keywordIndexed.value >= diceThreshold)
+      // sort them by rank
+      .sort((a, b) => b.value - a.value);
 
-  //   if (keywordIdentifierMatch) {
-  //     return {
-  //       type: ModeResultType.KeywordIdentifier,
-  //       entity: keywordIdentifierMatch,
-  //       collision: List(keywordIdentifierMatch._keywords).first(),
-  //     };
-  //   }
+    if (keywordsIndexed.count() > 0) {
+      // return {
+      //   type: ModeResultType.MainIdentifierMatch,
+      //   value: mainValue,
+      //   index: mainIdentifierSimilarity,
+      // },
+    }
 
-    // return {
-    //   type: ModeResultType.NoMatch,
-    // };
-  // }
+    return {
+      type: '',
+      value: '',
+      index: 1,
+    };
+
+  }
 }
 
 export default BaseCompare;
