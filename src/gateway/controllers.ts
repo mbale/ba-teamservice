@@ -1,7 +1,7 @@
 import { Connection, createConnection, ConnectionOptions } from 'typeorm';
 import { Request, Response, Context } from 'koa';
 import { Service, Container, Inject } from 'typedi';
-import { JsonController, Get, Req, Res, Ctx, QueryParam, QueryParams } from 'routing-controllers';
+import { JsonController, Get, Req, Res, Ctx, QueryParam, QueryParams, Param } from 'routing-controllers';
 import TeamCompare from '../core/compare';
 import { List } from 'immutable';
 import Team from '../entity/team';
@@ -38,10 +38,10 @@ export default class TeamController {
   }
 
   @Get('/compare-team-name')
-  public async compareTeamname(@Ctx() ctx : Context) : Promise<Context> {
+  public async compareTeamName(
+    @QueryParam('name') name : string,  
+    @Ctx() ctx : Context) : Promise<Context> {
     const connection = await this._connection;
-
-    const param = 'Rain';
 
     const cursor = connection
       .getMongoRepository('Team')
@@ -51,17 +51,16 @@ export default class TeamController {
 
     const results = List();
     
-    const similarities = List<Team>();
-    
     while (await cursor.hasNext()) {
       const team : Team = await cursor.next();
 
-      const result = teamCompare.runOnEntity(param, team);
+      teamCompare.compareUnitWithEntity(name, team);
+      teamCompare.rankByOverall();
     }
 
     // literate through entities
 
-    console.log(results.count())
+    
 
     ctx.body = results;
     return ctx;
