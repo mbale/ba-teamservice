@@ -1,5 +1,5 @@
 import BaseEntity from './base-entity';
-import { EntitySchema } from 'typeorm';
+import { EntitySchema, ObjectID } from 'typeorm';
 import { List, Map, Collection } from 'immutable';
 import {
   similarity,
@@ -13,9 +13,57 @@ export class AppError extends Error {
 
     Error.captureStackTrace(this, this.constructor);
     
-    // just in case we save name of class too
+    // just in case we save name of constructor too
     this.name = this.constructor.name;
   }
+}
+
+/**
+ * Compare type
+ * 
+ * @enum {number}
+ */
+enum CompareModes {
+  Strict, Similar,
+}
+
+/**
+ * Relation object between unit & entity
+ * 
+ * @interface Relation
+ */
+interface Relation {
+  /**
+   * Entity Id which unit is related to
+   * 
+   * @type {ObjectID}
+   * @memberof RelatedEntity
+   */
+  entityId : ObjectID;
+  /**
+   * Relation type which shows how it relates in comparison
+   * strict | similar
+   * 
+   * @type {CompareModes}
+   * @memberof RelatedEntity
+   */
+  relationType : CompareModes;
+  /**
+   * KeyType which shows what key is our base on comparison
+   * only during strict
+   * 
+   * @type {(MatchType.MainIdentifier | MatchType.KeywordIdentifier)}
+   * @memberof RelatedEntity
+   */
+  keyType? : MatchType.MainIdentifier | MatchType.KeywordIdentifier;
+  /**
+   * Contains of the summed indexes of relativeness
+   * only during similar
+   * 
+   * @type {number}
+   * @memberof RelatedEntity
+   */
+  summedIndex? : number;
 }
 
 /**
@@ -23,41 +71,8 @@ export class AppError extends Error {
  * 
  * @enum {number}
  */
-enum ModeResultType {
-  NoMatch, MainIdentifierMatch, KeywordIdentifierMatch,
-}
-
-interface CompareModeResult {
-  type : ModeResultType;
-}
-
-/**
- * Interface of strict compare mode result
- * 
- * @export
- * @interface StrictCompareModeResult
- */
-export interface StrictCompareModeResult extends CompareModeResult {
-}
-
-/**
- * Interface of similar compare mode result
- * 
- * @export
- * @interface SimilarCompareModeResult
- */
-export interface SimilarCompareModeResult extends CompareModeResult {
-  entity? : BaseEntity;
-}
-
-/**
- * Requested setting to how we compare 
- * 
- * @export
- * @enum {number}
- */
-export enum CompareMode {
-  StrictOnly, SimilarOnly, StrictAndSimilar,
+enum MatchType {
+  MainIdentifier, KeywordIdentifier, NotFound,
 }
 
 /**
@@ -74,6 +89,16 @@ export interface Thresholds {
 }
 
 /**
+ * Settings for comparing mode
+ * 
+ * @export
+ * @enum {number}
+ */
+export enum CompareMode {
+  StrictOnly, SimilarOnly, StrictAndSimilar,
+}
+
+/**
  * Compare options object for compare service
  * 
  * @export
@@ -84,16 +109,6 @@ export interface CompareSettings {
   thresholds : Thresholds;
 }
 
-export interface CompareResult {
-  result : CompareModeResult;
-}
-
-export interface EntitySimilarity {
-  entity : BaseEntity;
-  connection : ModeResultType;
-  dice: number;
-}
-
 /**
  * Base abstract class that contains all core functionality for extending further compare services
  * 
@@ -101,6 +116,7 @@ export interface EntitySimilarity {
  * @class BaseCompare
  */
 abstract class BaseCompare {
+  protected relatedEntities: List<Relation> = List();
 
   /**
    * The string which we compare
@@ -110,33 +126,6 @@ abstract class BaseCompare {
    * @memberof BaseCompare
    */
   protected unit : string = null;
-
-  /**
-   * The collection in which we search for
-   * 
-   * @protected
-   * @type {List<BaseEntity>}
-   * @memberof BaseCompare
-   */
-  protected collection : List<BaseEntity> = null;
-  
-  /**
-   * Contains all related entities by strict sequence
-   * 
-   * @protected
-   * @type {List<BaseEntity>}
-   * @memberof BaseCompare
-   */
-  protected relatedStrictEntities : List<BaseEntity> = List();
-
-  /**
-   * Contains all related entities by similar sequence
-   * 
-   * @protected
-   * @type {List<BaseEntity>}
-   * @memberof BaseCompare
-   */
-  protected relatedSimilarEntities : List<BaseEntity> = List();
   
   /**
    * Default compare settings which contains mode and threshold
@@ -154,11 +143,9 @@ abstract class BaseCompare {
    * @param {List<BaseEntity>} collection 
    * @memberof BaseCompare
    */
-  constructor(collection?: List<BaseEntity>) {
-    if (collection && collection.count() === 0) {
-      throw new Error('Empty collection');
-    } else {
-      this.collection = collection;
+  constructor(compareSettings? : CompareSettings) {
+    if (compareSettings) {
+      this.compareSettings = compareSettings;
     }
   }
 
@@ -166,11 +153,10 @@ abstract class BaseCompare {
    * Compare unit with entity
    * 
    * @param {string} unit 
-   * @param {BaseEntity} entity 
-   * @returns {CompareResult} 
+   * @param {BaseEntity} entity  
    * @memberof BaseCompare
    */
-  public compareUnitWithEntity(unit : string, entity : BaseEntity) {
+  public runInSequence(unit : string, entity : BaseEntity) : boolean {
     if (!unit) {
       throw new Error('Missing unit to test');
     }
@@ -179,7 +165,7 @@ abstract class BaseCompare {
       throw new Error('Missing entity to compare');
     }
 
-    this.unit = unit;
+    this.unit = unit.toLowerCase();
 
     const {
       mode,
@@ -192,69 +178,24 @@ abstract class BaseCompare {
       StrictAndSimilar,
     } = CompareMode;
 
-    enum CompareModes {
-      Strict, Similar,
-    }
-
-    interface RelatedEntity {
-      /**
-       * Entity which unit is related to
-       * 
-       * @type {BaseEntity}
-       * @memberof RelatedEntity
-       */
-      entity : BaseEntity;
-      /**
-       * Relation type which shows how it relates in comparison
-       * strict | similar
-       * 
-       * @type {CompareModes}
-       * @memberof RelatedEntity
-       */
-      relationType : CompareModes;
-      /**
-       * KeyType which shows what key is our base on comparison
-       * 
-       * @type {(ModeResultType.MainIdentifierMatch | ModeResultType.KeywordIdentifierMatch)}
-       * @memberof RelatedEntity
-       */
-      keyType : ModeResultType.MainIdentifierMatch | ModeResultType.KeywordIdentifierMatch;
-      /**
-       * KeyValue which contains the value of relation key
-       * 
-       * @type {string}
-       * @memberof RelatedEntity
-       */
-      keyValue : string;
-      /**
-       * Contains the value of dice comparison only if similar algorithm ran
-       * 
-       * @type {number}
-       * @memberof RelatedEntity
-       */
-      diceIndex? : number;
-    }
-
-    let relatedEntities = List<RelatedEntity>();
+    const modelCountBefore = this.relatedEntities.count();
 
     if (mode === StrictOnly || mode === StrictAndSimilar) {
-      const { type, value }  = this.strictCompare(entity);
+      const result = this.strictCompare(entity);
 
-      switch (type) {
-        case ModeResultType.MainIdentifierMatch:
-          relatedEntities = relatedEntities.push({
-            entity,
+      switch (result) {
+        case MatchType.MainIdentifier:
+          this.relatedEntities = this.relatedEntities.push({
+            entityId: entity._id,
             relationType: CompareModes.Strict,
-            keyType: ModeResultType.MainIdentifierMatch,
-            keyValue: value,
+            keyType: MatchType.MainIdentifier,
           });
           break;
-        case ModeResultType.KeywordIdentifierMatch:
-          relatedEntities = relatedEntities.push({
-            entity,
+        case MatchType.KeywordIdentifier:
+          this.relatedEntities = this.relatedEntities.push({
+            entityId: entity._id,
             relationType: CompareModes.Strict,
-            keyType: ModeResultType.KeywordIdentifierMatch,
-            keyValue: value,
+            keyType: MatchType.KeywordIdentifier,
           });
         default:
           break;
@@ -262,21 +203,23 @@ abstract class BaseCompare {
     }
 
     if (mode === SimilarOnly || mode === StrictAndSimilar) {
-      const r = this.similarCompare(entity);
+      const result = this.similarCompare(entity);
+      if (result >= thresholds.dice) {
+        this.relatedEntities = this.relatedEntities.push({
+          entityId: entity._id,
+          relationType: CompareModes.Similar,
+          summedIndex: result,
+        });
+      }
     }
 
-    if (relatedEntities.count() !== 0) {
-      console.log(relatedEntities.first())
-    }
-    return ;
-  }
+    const modelCountAfter = this.relatedEntities.count();
 
-  public rankByOverall() {
-    
+    return modelCountBefore === modelCountAfter ? false : true;
   }
 
   /**
-   * Get similarity number between two unit
+   * Get similarity index between two unit
    * 
    * @protected
    * @param {string} unit1 
@@ -284,143 +227,91 @@ abstract class BaseCompare {
    * @returns {number} 
    * @memberof BaseCompare
    */
-  protected compareTwoUnits(unit1 : string, unit2 : string) : number {
+  protected calculateIndex(unit1 : string, unit2 : string) : number {
     return similarity(unit1, unit2);
   }
 
   /**
-   * Sort two array items based on similarity between each other 
-   * then returns correlation between them
+   * Compare unit with entity in strict way
    * 
    * @protected
-   * @param {string[]} unitsA 
-   * @param {string[]} unitsB 
-   * @returns 
+   * @param {BaseEntity} entity 
+   * @returns {MatchType} 
    * @memberof BaseCompare
    */
-  protected sortEntitiesByKeywordIdentifier(unitsA : string[], unitsB : string[]) {
-    unitsA = unitsA.sort((a, b) => 
-      this.compareTwoUnits(this.unit, b) - this.compareTwoUnits(this.unit, a));
-    unitsB = unitsB.sort((a, b) => 
-      this.compareTwoUnits(this.unit, b) - this.compareTwoUnits(this.unit, a));
-    
-    return this.compareTwoUnits(unitsA[0], unitsB[0]);
-  }
-
-  /**
-   * Check if a list contains eligible units based on threshold
-   * 
-   * @protected
-   * @param {List<string>} list 
-   * @returns {boolean} 
-   * @memberof BaseCompare
-   */
-  protected filterListByThreshold(list : List<string>) : boolean {
-    const eligibleEntityCriteriaCount = list
-      .filter(keyword => 
-        this.compareTwoUnits(this.unit.toLowerCase(), keyword.toLowerCase()) 
-          >= this.compareSettings.thresholds.dice)
-      .count();
-  
-    if (eligibleEntityCriteriaCount !== 0) return true;
-    return false;
-  }
-
-  /**
-   * Sort units based on its similarity values (ASC)
-   * 
-   * @protected
-   * @param {List<string>} units 
-   * @returns 
-   * @memberof BaseCompare
-   */
-  protected sortEntitiesBySimilarity(units : List<string>) {
-    units.sort((a, b) => 
-      this.compareTwoUnits(this.unit, b) - this.compareTwoUnits(this.unit, a));
-    
-    return units;
-  }
-
-  /**
-   * Run strict compare on unit 
-   * 
-   * @protected
-   * @returns {StrictCompareModeResult} 
-   * @memberof BaseCompare
-   */
-  protected strictCompare(entity : BaseEntity) {
+  protected strictCompare(entity : BaseEntity) : MatchType {
     const unit = this.unit;
+    const entityName = entity.name.toLowerCase();
     const keywords = List(entity._keywords);
     // we first check if we've the same by name
-    const MainIdentifierMatchMatch = entity.name.toLowerCase() === unit.toLowerCase();
+    const MainIdentifierMatch = entityName === unit;
     // then we also check keywords
-    const keywordIdentifierMatch = keywords.contains(unit.toLowerCase());
+    const keywordIdentifierMatch = keywords
+      // we make sure it's lowercase
+      .map(k => k.toLowerCase())
+      // strict find
+      .contains(unit);
 
-    if (MainIdentifierMatchMatch) {
-      // get value
-      const mainValue = entity.name;
-      return {
-        type: ModeResultType.MainIdentifierMatch,
-        value: mainValue,
-      };
+    if (MainIdentifierMatch) {
+      return MatchType.MainIdentifier;
     }
 
     if (keywordIdentifierMatch) {
-      // get that keyword
-      const keywordValue = keywords.find(keyword => keyword === unit.toLowerCase());
-      return {
-        type: ModeResultType.KeywordIdentifierMatch,
-        value: keywordValue,
-      };
+      return MatchType.KeywordIdentifier;
     }
 
-    return {
-      type: ModeResultType.NoMatch,
-      value : null,
-    };
+    return MatchType.NotFound;
   }
 
   /**
-   * Run similar compare on unit
+   * Compare unit with entity in similar indexed way
    * 
    * @protected
-   * @returns {SimilarCompareModeResult} 
+   * @param {BaseEntity} entity 
+   * @returns {number} 
    * @memberof BaseCompare
    */
-  protected similarCompare(entity : BaseEntity) {
+  protected similarCompare(entity : BaseEntity) : number {
     const unit = this.unit;
+    const entityName = entity.name.toLowerCase();
     const diceThreshold = this.compareSettings.thresholds.dice;
     const keywords = List(entity._keywords);
 
-    const mainIdentifierSimilarity = this.compareTwoUnits(entity.name, unit);
+    const mainIdentifierSimilarity = this
+      .calculateIndex(entityName, unit);
 
     const keywordsIndexed = keywords
       // calculate their indexes
       .map((keyword) => {
         return {
-          keyword,
-          value: this.compareTwoUnits(keyword, unit),
+          keyword: keyword.toLowerCase(), // make sure it's lowercase
+          index: this.calculateIndex(keyword, unit),
         };
       })
       // remove invalids
-      .filter(keywordIndexed => keywordIndexed.value >= diceThreshold)
+      .filter(keywordIndexed => keywordIndexed.index >= diceThreshold)
       // sort them by rank
-      .sort((a, b) => b.value - a.value);
+      .sort((a, b) => b.index - a.index);
 
-    if (keywordsIndexed.count() > 0) {
-      // return {
-      //   type: ModeResultType.MainIdentifierMatch,
-      //   value: mainValue,
-      //   index: mainIdentifierSimilarity,
-      // },
-    }
+    const mainIndex = mainIdentifierSimilarity >= diceThreshold ? mainIdentifierSimilarity : 0;
+    const keywordsIndex = keywordsIndexed.reduce((sum, next) => sum + next.index, 0);
 
-    return {
-      type: '',
-      value: '',
-      index: 1,
-    };
+    /*
+    We rank them by correlation
+    */
+    const summedIndex = mainIndex + keywordsIndex;
 
+    return summedIndex;
+  }
+
+  /**
+   * Returns the related objects
+   * 
+   * @returns {List<Relation>} 
+   * @memberof BaseCompare
+   */
+  public getRelatedByRank() {
+    return this.relatedEntities.sort((a, b) => b.summedIndex - a.summedIndex);
   }
 }
 

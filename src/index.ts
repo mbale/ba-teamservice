@@ -1,3 +1,4 @@
+import Game from './entity/game';
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import * as Queue from 'bull';
@@ -8,25 +9,16 @@ import apiGateway from './gateway/api';
 import Team, {
   SiteType,
 } from './entity/team';
-import TeamCompare from './core/compare';
+import TeamCompare from './core/team-compare';
 import { List } from 'immutable';
 import { CompareMode, CompareSettings } from './common/base-compare';
 
 dotenv.config();
 
-const REDIS_URL = process.env.TEAMSERVICE_REDIS_URL;
-const MONGODB_URL = process.env.TEAMSERVICE_MONGODB_URL;
-const HTTP_PORT = Number.parseInt(process.env.TEAMSERVICE_API_PORT, 10);
-
-const dbOptions: ConnectionOptions = {
-  type: 'mongodb',
-  url: MONGODB_URL,
-  logging: ['query', 'error'],
-  entities: [Team],
-};
+const REDIS_URL = process.env.TEAM_SERVICE_REDIS_URL;
+const HTTP_PORT = Number.parseInt(process.env.TEAM_SERVICE_API_PORT, 10);
 
 async function main() {
-  const connection = await createConnection(dbOptions);
   const api = await apiGateway(HTTP_PORT);
 
   // const task = new SynchMediawiki(connection.getMongoRepository('Team'));

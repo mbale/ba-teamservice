@@ -8,7 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import countryList from 'country-list';
-import BaseEntity, { ServiceEntitySettings } from '../common/base-entity';
+import BaseEntity from '../common/base-entity';
 
 export enum SiteType {
   Facebook, Twitch, Twitter, Instagram,
@@ -29,15 +29,8 @@ export interface Member {
   role?: string;
 }
 
-interface TeamserviceEntitySettings extends ServiceEntitySettings{
-  mediawiki : boolean;
-}
-
 @Entity('teams')
 export default class Team extends BaseEntity {
-  @Column()
-  _settings : TeamserviceEntitySettings;
-
   @Column()
   info? : string = '';
 

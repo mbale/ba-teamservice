@@ -14,12 +14,10 @@ enum SourceType {
 
 interface Source {
   type: SourceType;
-  leagueID?: number;
-  matchID?: number;
+  leagueId?: number;
+  matchId?: number;
   _createdAt: Date;
 }
-
-export interface ServiceEntitySettings {}
 
 abstract class BaseEntity {
   @ObjectIdColumn()
@@ -40,9 +38,6 @@ abstract class BaseEntity {
   @Column()
   _updatedAt : Date;
 
-  @Column()
-  abstract _settings : ServiceEntitySettings;
-
   @BeforeInsert()
   updateCreationDate() {
     this._createdAt = new Date();
@@ -52,6 +47,6 @@ abstract class BaseEntity {
   updateModificationDate() {
     this._updatedAt = new Date();
   }
-};
+}
 
 export default BaseEntity;

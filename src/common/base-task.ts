@@ -12,5 +12,5 @@ export abstract class BaseTask {
     this.repository = repository;
   }
 
-  public abstract async run(jobData? : JobData) : Promise<JobResult>
+  public abstract async run(jobData? : JobData) : Promise<JobResult>;
 }

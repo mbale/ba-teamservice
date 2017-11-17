@@ -23,9 +23,9 @@ class SychMediawiki extends BaseTask {
     while (await cursor.hasNext()) {
       const team : Team = await cursor.next();
 
-      team._settings = {
-        mediawiki: true
-      }
+      // team._settings = {
+      //   mediawiki: true
+      // }
 
       await this.repository.save(team);
     }
