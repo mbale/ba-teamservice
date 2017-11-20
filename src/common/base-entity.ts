@@ -19,7 +19,7 @@ interface Source {
   _createdAt: Date;
 }
 
-abstract class BaseEntity {
+abstract class ServiceEntity {
   @ObjectIdColumn()
   _id : ObjectID;
 
@@ -33,15 +33,10 @@ abstract class BaseEntity {
   _keywords : string[] = [];
   
   @Column()
-  _createdAt : Date;
+  _createdAt : Date = new Date();
 
   @Column()
-  _updatedAt : Date;
-
-  @BeforeInsert()
-  updateCreationDate() {
-    this._createdAt = new Date();
-  }  
+  _updatedAt : Date = new Date();
 
   @BeforeUpdate()
   updateModificationDate() {
@@ -49,4 +44,4 @@ abstract class BaseEntity {
   }
 }
 
-export default BaseEntity;
+export default ServiceEntity;

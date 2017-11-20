@@ -5,35 +5,21 @@ import { List } from 'immutable';
 import { JobResult, JobData, BaseTask } from '../common/base-task';
 import Team from '../entity/team';
 
-class SychMediawiki extends BaseTask {
+interface SyncMediaWikiTaskResult {
+
+}
+
+class SynchMediaWiki extends BaseTask {
   public async run(jobData? : JobData) {
-    const result: JobResult = {
-      data: {}
-    }
+    const result: SyncMediaWikiTaskResult = {
+      data: {},
+    };
 
     const cursor = this.repository.createEntityCursor();
-
-    async function getGamename(gameId : ObjectID ) {
-      if (!gameId) {
-        throw new TypeError('');
-      }
-    }
-
-    // loop in stream
-    while (await cursor.hasNext()) {
-      const team : Team = await cursor.next();
-
-      // team._settings = {
-      //   mediawiki: true
-      // }
-
-      await this.repository.save(team);
-    }
-
     
     
-    return Promise.resolve(result);
+    return result;
   }
 }
 
-export default SychMediawiki;
+export default SynchMediaWiki;

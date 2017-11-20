@@ -1,3 +1,4 @@
+import SynchMediaWiki from './task/synch-mediawiki';
 import Game from './entity/game';
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
@@ -5,7 +6,6 @@ import * as Queue from 'bull';
 import { createConnection, Connection, ConnectionOptions } from 'typeorm';
 import wikiJS from 'wikijs';
 import apiGateway from './gateway/api';
-// import SynchMediawiki from './task/synch-mediawiki';
 import Team, {
   SiteType,
 } from './entity/team';
@@ -21,14 +21,12 @@ const HTTP_PORT = Number.parseInt(process.env.TEAM_SERVICE_API_PORT, 10);
 async function main() {
   const api = await apiGateway(HTTP_PORT);
 
-  // const task = new SynchMediawiki(connection.getMongoRepository('Team'));
-  //await task.run();
+  // const task = new SynchMediaWiki(connection.getMongoRepository('Team'));
+  // await task.run();
 
-  // const wiki = await wikiJS({
-  //   // apiUrl: 'http://lol.gamepedia.com/api.php',
-  // });
-
-  // const page = await wiki.page('title')
+  const wiki = await wikiJS({
+    apiUrl: 'http://lol.gamepedia.com/api.php',
+  });
 
 }
 

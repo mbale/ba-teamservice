@@ -311,7 +311,8 @@ abstract class BaseCompare {
    * @memberof BaseCompare
    */
   public getRelatedByRank() {
-    return this.relatedEntities.sort((a, b) => b.summedIndex - a.summedIndex);
+    return this.relatedEntities
+      .sort((a, b) => b.summedIndex - a.summedIndex);
   }
 }
 

@@ -8,7 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import countryList from 'country-list';
-import BaseEntity from '../common/base-entity';
+import ServiceEntity from '../common/base-entity';
 
 export enum SiteType {
   Facebook, Twitch, Twitter, Instagram,
@@ -30,7 +30,7 @@ export interface Member {
 }
 
 @Entity('teams')
-export default class Team extends BaseEntity {
+export default class Team extends ServiceEntity {
   @Column()
   info? : string = '';
 

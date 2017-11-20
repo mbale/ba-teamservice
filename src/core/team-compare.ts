@@ -6,7 +6,7 @@ class TeamCompare extends BaseCompare {
   protected compareSettings : CompareSettings = {
     mode: CompareMode.StrictAndSimilar,
     thresholds: {
-      dice: 0.8,
+      dice: 0.75,
       levenshtein: 1,
     },
   };
