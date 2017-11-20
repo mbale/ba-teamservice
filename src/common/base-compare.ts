@@ -1,4 +1,4 @@
-import BaseEntity from './base-entity';
+import ServiceEntity from './base-entity';
 import { EntitySchema, ObjectID } from 'typeorm';
 import { List, Map, Collection } from 'immutable';
 import {
@@ -140,7 +140,7 @@ abstract class BaseCompare {
   /**
    * Creates an instance of BaseCompare.
    * 
-   * @param {List<BaseEntity>} collection 
+   * @param {List<ServiceEntity>} collection 
    * @memberof BaseCompare
    */
   constructor(compareSettings? : CompareSettings) {
@@ -153,10 +153,10 @@ abstract class BaseCompare {
    * Compare unit with entity
    * 
    * @param {string} unit 
-   * @param {BaseEntity} entity  
+   * @param {ServiceEntity} entity  
    * @memberof BaseCompare
    */
-  public runInSequence(unit : string, entity : BaseEntity) : boolean {
+  public runInSequence(unit : string, entity : ServiceEntity) : boolean {
     if (!unit) {
       throw new Error('Missing unit to test');
     }
@@ -235,11 +235,11 @@ abstract class BaseCompare {
    * Compare unit with entity in strict way
    * 
    * @protected
-   * @param {BaseEntity} entity 
+   * @param {ServiceEntity} entity 
    * @returns {MatchType} 
    * @memberof BaseCompare
    */
-  protected strictCompare(entity : BaseEntity) : MatchType {
+  protected strictCompare(entity : ServiceEntity) : MatchType {
     const unit = this.unit;
     const entityName = entity.name.toLowerCase();
     const keywords = List(entity._keywords);
@@ -267,11 +267,11 @@ abstract class BaseCompare {
    * Compare unit with entity in similar indexed way
    * 
    * @protected
-   * @param {BaseEntity} entity 
+   * @param {ServiceEntity} entity 
    * @returns {number} 
    * @memberof BaseCompare
    */
-  protected similarCompare(entity : BaseEntity) : number {
+  protected similarCompare(entity : ServiceEntity) : number {
     const unit = this.unit;
     const entityName = entity.name.toLowerCase();
     const diceThreshold = this.compareSettings.thresholds.dice;

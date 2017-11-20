@@ -15,24 +15,11 @@ import * as dotenv from 'dotenv';
 import Game from '../entity/game';
 import { ObjectId, ObjectID } from 'bson';
 import GameCompare from '../core/game-compare';
-
+import { connection } from '../common/base-utilities';
 
 dotenv.config();
 
 const MONGODB_URL = process.env.TEAM_SERVICE_MONGODB_URL;
-
-export function connection() {
-  return function (object : object, propertyName : string, index? : number) {
-    const dbOptions : ConnectionOptions = {
-      type: 'mongodb',
-      url: MONGODB_URL,
-      logging: ['query', 'error'],
-      entities: [Team, Game],
-    };
-    const connection = createConnection(dbOptions);
-    Container.registerHandler({ object, propertyName, index, value: () => connection });
-  };
-}
 
 interface TeamCompareHTTPRequestParams {
   'team-name': string;
@@ -48,7 +35,7 @@ interface TeamCompareHTTPResponse {
 @Service()
 @JsonController('/api')
 export default class TeamController {
-  constructor(@connection() private _connection : Connection) {}
+  constructor(@connection(MONGODB_URL, [Team, Game]) private _connection : Connection) {}
 
   /**
    * Health check
