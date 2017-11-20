@@ -53,10 +53,7 @@ export default class TeamController {
   public async compareTeamName(
     @QueryParam('team-name') teamName : string,
     @QueryParam('game-name') gameName : string,
-    @Body() body : string,
     @Ctx() ctx : Context) : Promise<Context> {
-
-    console.log(body);
 
     const connection = await this._connection;
     const gameRepository = connection.getMongoRepository<Game>(Game);
