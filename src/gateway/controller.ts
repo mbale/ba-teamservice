@@ -1,15 +1,21 @@
-import { CompareHTTPResponse, CompareHTTPResponseType } from '../common/base-api';
 import { Connection, createConnection, ConnectionOptions } from 'typeorm';
 import { Request, Response, Context } from 'koa';
 import { Service, Container, Inject } from 'typedi';
-import { JsonController, Get, Ctx, QueryParam, Post, Body } from 'routing-controllers';
+import { 
+  JsonController,
+  Get, Ctx, Post, 
+  Body, QueryParams,
+  QueryParam,
+  BadRequestError,
+} from 'routing-controllers';
 import TeamCompare from '../core/team-compare';
 import { List, Map } from 'immutable';
 import Team from '../entity/team';
 import * as dotenv from 'dotenv';
 import Game from '../entity/game';
-import { ObjectID, ObjectId } from 'bson';
+import { ObjectId, ObjectID } from 'bson';
 import GameCompare from '../core/game-compare';
+
 
 dotenv.config();
 
@@ -28,11 +34,29 @@ export function connection() {
   };
 }
 
+interface TeamCompareHTTPRequestParams {
+  'team-name': string;
+  'game-name': string;
+}
+
+interface TeamCompareHTTPResponse {
+  gameId : ObjectID;
+  teamId : ObjectID;
+}
+
+
 @Service()
 @JsonController('/api')
 export default class TeamController {
   constructor(@connection() private _connection : Connection) {}
 
+  /**
+   * Health check
+   * 
+   * @param {Context} ctx 
+   * @returns 
+   * @memberof TeamController
+   */
   @Get('/')
   public async ping(@Ctx() ctx : Context) {
     ctx.body = 'ok';
@@ -51,9 +75,25 @@ export default class TeamController {
    */
   @Post('/compare')
   public async compareTeamName(
-    @QueryParam('team-name') teamName : string,
-    @QueryParam('game-name') gameName : string,
+    @QueryParams() names : TeamCompareHTTPRequestParams,
     @Ctx() ctx : Context) : Promise<Context> {
+
+    if (!names) {
+      throw new BadRequestError('Missing object');
+    }
+
+    if (!names['team-name'] || !names['game-name']) {
+      throw new BadRequestError('Missing one or two key');
+    }
+    
+    const {
+      'game-name': gameName,
+      'team-name': teamName,
+    } = names;
+
+    if (gameName.length === 0 || teamName.length === 0) {
+      throw new BadRequestError('Empty values');
+    }
 
     const connection = await this._connection;
     const gameRepository = connection.getMongoRepository<Game>(Game);
@@ -120,8 +160,7 @@ export default class TeamController {
       team = await teamRepository.save(team);
     }
 
-    const response : CompareHTTPResponse = {
-      type: CompareHTTPResponseType.Match,
+    const response : TeamCompareHTTPResponse = {
       gameId: game._id,
       teamId: team._id,
     };
@@ -133,7 +172,13 @@ export default class TeamController {
 
   @Get('/teams')
   public async getTeamById(
-    @QueryParam('ids') ids : ObjectID[], @Ctx() ctx : Context) : Promise<Context> {
+    @QueryParam('ids') ids : ObjectID[], 
+    @Ctx() ctx : Context) : Promise<Context> {
+
+    if (!ids) {
+      throw new BadRequestError();
+    }
+
     const connection = await this._connection;
     const teamRepository = connection.getMongoRepository<Team>(Team);
   

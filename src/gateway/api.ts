@@ -9,6 +9,7 @@ async function apiGateway(port: number): Promise<Koa> {
 
   useContainer(Container);
   useKoaServer(app, {
+    cors: true,
     controllers: [ApiController],
   });
   
