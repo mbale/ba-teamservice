@@ -29,6 +29,15 @@ export interface Member {
   role?: string;
 }
 
+export enum MediaWikiSwitch {
+  Manual, Automatic,
+}
+
+export interface MediaWikiSetting {
+  switch : MediaWikiSwitch;
+  lastWork : Date;
+}
+
 @Entity('teams')
 export default class Team extends ServiceEntity {
   @Column()
@@ -48,4 +57,10 @@ export default class Team extends ServiceEntity {
 
   @Column()
   logo? : string = '';
+
+  @Column()
+  _mediaWiki : MediaWikiSetting = {
+    switch: MediaWikiSwitch.Automatic,
+    lastWork: null,
+  };
 }

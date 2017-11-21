@@ -20,8 +20,7 @@ const HTTP_PORT = Number.parseInt(process.env.TEAM_SERVICE_API_PORT, 10);
 
 async function main() {
   const api = await apiGateway(HTTP_PORT);
-
-  // const task = new SynchMediaWiki(connection.getMongoRepository('Team'));
+  const task = await SynchMediaWiki();
   // await task.run();
 
   const wiki = await wikiJS({
