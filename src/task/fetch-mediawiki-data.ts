@@ -2,16 +2,18 @@ import { Job, JobPromise } from 'bull';
 import wikiJS from 'wikijs';
 import { ObjectID, getConnection, ConnectionOptions, getConnectionManager } from 'typeorm';
 import { List, Map } from 'immutable';
-import Team, { MediaWikiSwitch } from '../entity/team';
+import Team, { MediaWikiSwitch, MediaWikiSource, MediaWikiSourceType } from '../entity/team';
 import Game from '../entity/game';
 import * as dotenv from 'dotenv';
 import { createConnection } from 'net';
-import * as cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { MongoConnectionOptions } from 'typeorm/driver/mongodb/MongoConnectionOptions';
+import { ObjectId } from 'bson';
+import axios from 'axios';
 
 const MediaWikiAPIUrls = {
-  lol: 'http://lol.gamepedia.com/api.php',
-  dota2: 'http://dota2.gamepedia.com/api.php',
+  lol: ['http://lol.gamepedia.com/api.php', 'http://wiki.teamliquid.net/dota2/api.php'],
+  dota2: 'http://wiki.teamliquid.net/dota2/api.php',
   ow: 'http://overwatch.gamepedia.com/api.php',
   rl:  'http://rocketleague.gamepedia.com/api.php',
   hs: 'http://hearthstone.gamepedia.com/api.php',
@@ -21,7 +23,7 @@ dotenv.config();
 
 const mongodbURL = process.env.TEAM_SERVICE_MONGODB_URL;
 
-async function synchMediaWikiTask(jobData? : any) {
+async function fetchMediaWikiTask(jobData? : any) {
   const dbOptions : ConnectionOptions = {
     entities: [Game, Team],
     type: 'mongodb',
@@ -36,45 +38,53 @@ async function synchMediaWikiTask(jobData? : any) {
   const teamCursor = await connection
     .getMongoRepository<Team>(Team)
     .createEntityCursor({
-      // _mediaWiki: {
-      //   switch: MediaWikiSwitch.Automatic,
-      // },
-    }).limit(10);
+      '_mediaWiki.switch': MediaWikiSwitch.Automatic,
+      '_mediaWiki.sources': {
+        $size: 2,
+      },
+    });
 
   let counter = 0;
 
-  const apiClients = Map<string, typeof wikiJS>();
+  const apiClients = [];
 
   while (await teamCursor.hasNext()) {
     const team : Team = await teamCursor.next();
     const game : Game = await gameRepository.findOneById(team.gameId);
 
     if (game) {
-      if (MediaWikiAPIUrls[game.slug]) {
-        const client = apiClients.get(game.slug, wikiJS)({
-          apiUrl: MediaWikiAPIUrls.lol,
-        });
-        try {
-          const page = await client.page(team.name);
+      const API_URLS = [];
+      const HTML_FRAGMENT_URLS = [];
 
-          /*
-            HTML parsing
-          */
-
-          const $ = cheerio.load(await page.html());
-          console.log($('#Player_Roster')
-
-          // console.log(await page.html())
-          
-          counter += 1;
-        } catch (error) {
-          
+      /*
+        Identify method of data gathering
+      */
+      
+      for (const source of team._mediaWiki.sources) {
+        console.log(source.type === MediaWikiSourceType.API_FETCH)
+        if (source.type === MediaWikiSourceType.API_FETCH) {
+          // console.log(source)
+          const getPageFragment = source.url.split('/');
+          console.log(getPageFragment);
+          // API_URLS.push(wikiJS({
+          //   apiUrl: source.url,
+          // }).page());
+        }
+        if (source.type === MediaWikiSourceType.HTML_PARSE) {
+          HTML_FRAGMENT_URLS.push(source.url);
         }
       }
+
+      /*
+        Initiate data gathering
+      */
+
+
+    
     }
   }
 
   console.log(counter)
 }
 
-export default synchMediaWikiTask;
+export default fetchMediaWikiTask;

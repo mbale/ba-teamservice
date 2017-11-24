@@ -8,7 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import countryList from 'country-list';
-import ServiceEntity from '../common/base-entity';
+import { ServiceEntity } from 'ba-common';
 
 export enum SiteType {
   Facebook, Twitch, Twitter, Instagram,
@@ -33,9 +33,19 @@ export enum MediaWikiSwitch {
   Manual, Automatic,
 }
 
+export enum MediaWikiSourceType {
+  API_FETCH, HTML_PARSE,
+}
+
+export interface MediaWikiSource {
+  type: MediaWikiSourceType;
+  url: string;
+}
+
 export interface MediaWikiSetting {
   switch : MediaWikiSwitch;
-  lastWork : Date;
+  sources : MediaWikiSource[];
+  lastFetch : Date;
 }
 
 @Entity('teams')
@@ -61,6 +71,7 @@ export default class Team extends ServiceEntity {
   @Column()
   _mediaWiki : MediaWikiSetting = {
     switch: MediaWikiSwitch.Automatic,
-    lastWork: null,
+    sources: [],
+    lastFetch: null,
   };
 }

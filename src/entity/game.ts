@@ -1,4 +1,4 @@
-import ServiceEntity from '../common/base-entity';
+import { ServiceEntity } from 'ba-common';
 import { Entity, Column,  BeforeInsert } from 'typeorm';
 
 @Entity('games')

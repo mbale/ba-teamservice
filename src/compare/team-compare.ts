@@ -1,8 +1,8 @@
 import { List } from 'immutable';
 import Team from '../entity/team';
-import BaseCompare, { CompareMode, CompareSettings } from '../common/base-compare';
+import { Compare, CompareSettings, CompareModes, CompareMode } from 'ba-common';
 
-class TeamCompare extends BaseCompare {
+class TeamCompare extends Compare {
   protected compareSettings : CompareSettings = {
     mode: CompareMode.StrictAndSimilar,
     thresholds: {
