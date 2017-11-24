@@ -1179,9 +1179,9 @@ builtin-status-codes@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz#85982878e21b98e1c66425e03d0174788f569ee8"
 
-bull@^3.3.3:
-  version "3.3.5"
-  resolved "https://registry.yarnpkg.com/bull/-/bull-3.3.5.tgz#34e992f111a53665e84657d711487d61446317cf"
+bull@^3.3.6:
+  version "3.3.6"
+  resolved "https://registry.yarnpkg.com/bull/-/bull-3.3.6.tgz#d622add5c434af1612e3197f62c89270a8fe1449"
   dependencies:
     bluebird "^3.5.0"
     cron-parser "^2.4.1"
@@ -1515,9 +1515,9 @@ core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
 
-country-list@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/country-list/-/country-list-1.1.0.tgz#3ea3608857e17458657d129e1d737e4c2f79775b"
+"country-list@https://github.com/mbale/country-list":
+  version "2.1.0"
+  resolved "https://github.com/mbale/country-list#ce7f1f3a66a6b4e56879dad5f45886c71174ae30"
 
 create-ecdh@^4.0.0:
   version "4.0.0"

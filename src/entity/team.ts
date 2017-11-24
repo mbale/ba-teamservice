@@ -10,22 +10,12 @@ import {
 import countryList from 'country-list';
 import { ServiceEntity } from 'ba-common';
 
-export enum SiteType {
-  Facebook, Twitch, Twitter, Instagram,
-  YouTube, GooglePlus, Unknown, HomePage, 
-}
-
-export interface Site {
-  type : SiteType;
-  URL : string;
-}
-
 export interface Member {
   name: string;
   info?: string;
   joinedIn?: Date;
   countryCode?: string;
-  sites?: Site[];
+  sites?: string[];
   role?: string;
 }
 
@@ -37,15 +27,25 @@ export enum MediaWikiSourceType {
   API_FETCH, HTML_PARSE,
 }
 
-export interface MediaWikiSource {
-  type: MediaWikiSourceType;
-  url: string;
+export interface MediaWikiHTMLSource {
+  type : MediaWikiSourceType.HTML_PARSE;
+  tableSelector : string;
+}
+
+export interface MediaWikiAPISource {
+  type: MediaWikiSourceType.API_FETCH;
+  apiBaseUrl : string;
+  pageName : string;
 }
 
 export interface MediaWikiSetting {
   switch : MediaWikiSwitch;
-  sources : MediaWikiSource[];
+  sources : MediaWikiAPISource[] | MediaWikiHTMLSource[];
   lastFetch : Date;
+}
+
+export enum SocialSiteType {
+  Facebook, Twitter,
 }
 
 @Entity('teams')
@@ -63,7 +63,13 @@ export default class Team extends ServiceEntity {
   countryCode? : string = '';
 
   @Column()
-  sites? : Site[] = [];
+  site : string = '';
+
+  @Column()
+  socialSites : {
+    type : SocialSiteType,
+    name : string;
+  }[] = [];
 
   @Column()
   logo? : string = '';

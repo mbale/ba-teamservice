@@ -1,28 +1,117 @@
 import { Job, JobPromise } from 'bull';
 import wikiJS from 'wikijs';
 import { ObjectID, getConnection, ConnectionOptions, getConnectionManager } from 'typeorm';
-import { List, Map } from 'immutable';
-import Team, { MediaWikiSwitch, MediaWikiSource, MediaWikiSourceType } from '../entity/team';
-import Game from '../entity/game';
-import * as dotenv from 'dotenv';
-import { createConnection } from 'net';
-import { load } from 'cheerio';
 import { MongoConnectionOptions } from 'typeorm/driver/mongodb/MongoConnectionOptions';
+import * as dotenv from 'dotenv';
+import { load } from 'cheerio';
+import { List, Map } from 'immutable';
 import { ObjectId } from 'bson';
 import axios from 'axios';
-
-const MediaWikiAPIUrls = {
-  lol: ['http://lol.gamepedia.com/api.php', 'http://wiki.teamliquid.net/dota2/api.php'],
-  dota2: 'http://wiki.teamliquid.net/dota2/api.php',
-  ow: 'http://overwatch.gamepedia.com/api.php',
-  rl:  'http://rocketleague.gamepedia.com/api.php',
-  hs: 'http://hearthstone.gamepedia.com/api.php',
-};
+import countryList from 'country-list';
+import Team, { MediaWikiSwitch, MediaWikiSourceType, SocialSiteType } from '../entity/team';
+import Game from '../entity/game';
 
 dotenv.config();
 
 const mongodbURL = process.env.TEAM_SERVICE_MONGODB_URL;
 
+/**
+ * Checks mediawiki data and tries to associate with our data on isolated model scope
+ * 
+ * @param {typeof wikiJS} client 
+ * @param {string} apiUrl 
+ * @param {any} pageName 
+ * @param {Team} team 
+ * @returns 
+ */
+async function analyseMediaWikiPage(client: typeof wikiJS, apiUrl : string, pageName, team : Team) {
+  try {
+    const client = await wikiJS({
+      apiUrl, 
+    });
+
+    try {
+      const page = await client.page(pageName);
+      const info : any = await page.info();
+
+      /*
+        Check each field in page
+      */
+      if (info.name) {
+        const already = team._keywords.find(k => k === info.name);
+
+        if (!already) {
+          team._keywords.push(info.name);
+        }
+      }
+
+      if (info.location) {
+        const countryCode = countryList().getCode(info.location);
+
+        if (countryCode) {
+          team.countryCode = countryCode;
+        }
+      }
+
+      if (info.website) {
+        const already = team.site === info.website;
+
+        if (!already) {
+          team.site = info.website;
+        }
+      }
+
+      if (info.facebook) {
+        const already = team.socialSites.find(s => s === info.facebook);
+
+        if (!already) {
+          team.socialSites.push({
+            type: SocialSiteType.Facebook,
+            name: info.facebook,
+          });
+        }
+      }
+
+      if (info.twitter) {
+        const already = team.socialSites.find(s => s === info.twitter);
+        
+        if (!already) {
+          team.socialSites.push({
+            type: SocialSiteType.Twitter,
+            name: info.twitter,
+          });
+        }
+      }
+
+      if (info.image) {
+        try {
+          const imagesURLS : string[] = await page.images();
+          const mainImageURL = imagesURLS
+            .find(u => u.toLowerCase().includes(info.image.toLowerCase()));
+
+          if (mainImageURL) {
+            team.logo = mainImageURL;
+          }
+        } catch (error) {
+          
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      return null;
+    }
+  } catch (error) {
+    console.log(error)
+    return null;
+  }
+}
+
+/**
+ * Gathers team information from mediawiki api and html parsing
+ * and updates team entities
+ * 
+ * @param {*} [jobData] 
+ */
 async function fetchMediaWikiTask(jobData? : any) {
   const dbOptions : ConnectionOptions = {
     entities: [Game, Team],
@@ -39,12 +128,7 @@ async function fetchMediaWikiTask(jobData? : any) {
     .getMongoRepository<Team>(Team)
     .createEntityCursor({
       '_mediaWiki.switch': MediaWikiSwitch.Automatic,
-      '_mediaWiki.sources': {
-        $size: 2,
-      },
     });
-
-  let counter = 0;
 
   const apiClients = [];
 
@@ -61,30 +145,25 @@ async function fetchMediaWikiTask(jobData? : any) {
       */
       
       for (const source of team._mediaWiki.sources) {
-        console.log(source.type === MediaWikiSourceType.API_FETCH)
+        /*
+          Fetching API
+        */
         if (source.type === MediaWikiSourceType.API_FETCH) {
-          // console.log(source)
-          const getPageFragment = source.url.split('/');
-          console.log(getPageFragment);
-          // API_URLS.push(wikiJS({
-          //   apiUrl: source.url,
-          // }).page());
+          try {
+            const data = analyseMediaWikiPage(wikiJS, source.apiBaseUrl, source.pageName, team);
+          } catch (error) {
+            console.log(error)
+          }
         }
+        /*
+          HTML parsing
+        */
         if (source.type === MediaWikiSourceType.HTML_PARSE) {
-          HTML_FRAGMENT_URLS.push(source.url);
+          
         }
       }
-
-      /*
-        Initiate data gathering
-      */
-
-
-    
     }
   }
-
-  console.log(counter)
 }
 
 export default fetchMediaWikiTask;

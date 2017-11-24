@@ -4,7 +4,7 @@ import { Container } from 'typedi';
 import { useKoaServer, useContainer } from 'routing-controllers';
 import ApiController from './controller';
 
-async function apiGateway(port: number): Promise<Koa> {
+async function apiGateway(port: number) : Promise<Koa> {
   const app = new Koa();
 
   useContainer(Container);
