@@ -1,7 +1,4 @@
-# Awesome Project Build with TypeORM
+# ba-teamservice
         
-Steps to run this project:
-
-1. Run `npm i` command
-2. Setup database settings inside `ormconfig.json` file
-3. Run `npm start` command
+This microservice is handling functions related to games and teams.
+More info in documentation
