@@ -35,7 +35,8 @@ interface TeamCompareHTTPResponse {
 @Service()
 @JsonController('/api')
 export default class TeamController {
-  constructor(@DIConnection(MONGODB_URL, [Team, Game]) private _connection : Connection) {}
+  constructor(
+    @DIConnection(MONGODB_URL, [Team, Game], Container) private _connection : Connection) {}
 
   /**
    * Health check
