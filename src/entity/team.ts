@@ -8,16 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import countryList from 'country-list';
-import { ServiceEntity } from 'ba-common';
-
-export interface Member {
-  name: string;
-  info?: string;
-  joinedIn?: Date;
-  countryCode?: string;
-  sites?: string[];
-  role?: string;
-}
+import { ServiceEntity, Team, TeamMember, TeamSocialSite } from 'ba-common';
 
 export enum MediaWikiSwitch {
   Manual, Automatic,
@@ -44,17 +35,14 @@ export interface MediaWikiSetting {
   lastFetch : Date;
 }
 
-export enum SocialSiteType {
-  Facebook, Twitter,
-}
 
 @Entity('teams')
-export default class Team extends ServiceEntity {
+export default class TeamEntity extends ServiceEntity implements Team {
   @Column()
   info? : string = '';
 
   @Column()
-  members? : Member[] = [];
+  members? : TeamMember[] = [];
 
   @Column()
   gameId : ObjectID;
@@ -66,10 +54,7 @@ export default class Team extends ServiceEntity {
   site : string = '';
 
   @Column()
-  socialSites : {
-    type : SocialSiteType,
-    name : string;
-  }[] = [];
+  socialSites : TeamSocialSite[] = [];
 
   @Column()
   logo? : string = '';

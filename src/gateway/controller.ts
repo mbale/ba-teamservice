@@ -11,11 +11,11 @@ import {
 import TeamCompare from '../compare/team-compare';
 import GameCompare from '../compare/game-compare';
 import { List, Map } from 'immutable';
-import Team from '../entity/team';
+import TeamEntity from '../entity/team';
 import * as dotenv from 'dotenv';
 import Game from '../entity/game';
 import { ObjectId, ObjectID } from 'bson';
-import { DIConnection } from 'ba-common';
+import { dIConnection } from 'ba-common';
 
 dotenv.config();
 
@@ -36,7 +36,7 @@ interface TeamCompareHTTPResponse {
 @JsonController('/api')
 export default class TeamController {
   constructor(
-    @DIConnection(MONGODB_URL, [Team, Game], Container) private _connection : Connection) {}
+    @dIConnection(MONGODB_URL, [TeamEntity, Game], Container) private _connection : Connection) {}
 
   /**
    * Health check
@@ -85,7 +85,7 @@ export default class TeamController {
 
     const connection = await this._connection;
     const gameRepository = connection.getMongoRepository<Game>(Game);
-    const teamRepository = connection.getMongoRepository<Team>(Team);
+    const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
 
     const gameCursor = connection
       .getMongoRepository<Game>(Game)
@@ -128,10 +128,10 @@ export default class TeamController {
         gameId: game._id,
       });
 
-    let team : Team = null;
+    let team : TeamEntity = null;
     
     while (await teamCursor.hasNext()) {
-      const team : Team = await teamCursor.next();
+      const team : TeamEntity = await teamCursor.next();
       const related = teamCompare.runInSequence(teamName, team);
     }
 
@@ -142,7 +142,7 @@ export default class TeamController {
       team = await teamRepository.findOneById(relatedTeam.entityId);
     } else {
     // we make it
-      team = new Team();
+      team = new TeamEntity();
       team.name = teamName;
       team.gameId = game._id;
       team = await teamRepository.save(team);
@@ -158,25 +158,45 @@ export default class TeamController {
     return ctx;
   }
 
+  /**
+   * Fetch or query teams
+   * 
+   * @param {*} query 
+   * @param {Context} ctx 
+   * @returns {Promise<Context>} 
+   * @memberof TeamController
+   */
   @Get('/teams')
-  public async getTeamById(
-    @QueryParam('ids') ids : ObjectID[], 
+  public async fetchTeams(
+    @QueryParams() query : any, 
     @Ctx() ctx : Context) : Promise<Context> {
     
-    if (!ids) {
-      throw new BadRequestError();
+    let ids : ObjectId[] = [];
+    
+    if (query.id) {
+      if (query.id instanceof Array) {
+        ids = query.id.map(id => new ObjectId(id));
+      } else {
+        ids.push(new ObjectId(query.id));
+      }
     }
 
-    const connection = await this._connection;
-    const teamRepository = connection.getMongoRepository<Team>(Team);
-  
-    ids = ids.map(id => new ObjectID(id));
-    const results = await teamRepository.findByIds(ids);
+    let teams : TeamEntity[] = [];
 
-    ctx.body = results;
+    const connection = await this._connection;
+    const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
+
+    if (ids.length !== 0) {
+      teams = await teamRepository.findByIds(ids);
+    } else {
+      teams = await teamRepository.find();
+    }
+
+    ctx.body = teams;
 
     return ctx;
   }
+
 
   @Get('/games')
   public async getGameById(
@@ -203,6 +223,7 @@ export default class TeamController {
     }
 
     ctx.body = games;
+    
     return ctx;
   }
 }

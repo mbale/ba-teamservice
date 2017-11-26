@@ -8,8 +8,9 @@ import { List, Map } from 'immutable';
 import { ObjectId } from 'bson';
 import axios from 'axios';
 import countryList from 'country-list';
-import Team, { MediaWikiSwitch, MediaWikiSourceType, SocialSiteType } from '../entity/team';
+import TeamEntity, { MediaWikiSwitch, MediaWikiSourceType } from '../entity/team';
 import Game from '../entity/game';
+import { TeamSocialSiteType } from 'ba-common';
 
 dotenv.config();
 
@@ -21,10 +22,11 @@ const mongodbURL = process.env.TEAM_SERVICE_MONGODB_URL;
  * @param {typeof wikiJS} client 
  * @param {string} apiUrl 
  * @param {any} pageName 
- * @param {Team} team 
+ * @param {TeamEntity} team 
  * @returns 
  */
-async function analyseMediaWikiPage(client: typeof wikiJS, apiUrl : string, pageName, team : Team) {
+async function 
+analyseMediaWikiPage(client: typeof wikiJS, apiUrl : string, pageName, team : TeamEntity) {
   try {
     const client = await wikiJS({
       apiUrl, 
@@ -66,7 +68,7 @@ async function analyseMediaWikiPage(client: typeof wikiJS, apiUrl : string, page
 
         if (!already) {
           team.socialSites.push({
-            type: SocialSiteType.Facebook,
+            type: TeamSocialSiteType.Facebook,
             name: info.facebook,
           });
         }
@@ -77,7 +79,7 @@ async function analyseMediaWikiPage(client: typeof wikiJS, apiUrl : string, page
         
         if (!already) {
           team.socialSites.push({
-            type: SocialSiteType.Twitter,
+            type: TeamSocialSiteType.Twitter,
             name: info.twitter,
           });
         }
@@ -114,7 +116,7 @@ async function analyseMediaWikiPage(client: typeof wikiJS, apiUrl : string, page
  */
 async function fetchMediaWikiTask(jobData? : any) {
   const dbOptions : ConnectionOptions = {
-    entities: [Game, Team],
+    entities: [Game, TeamEntity],
     type: 'mongodb',
     url: mongodbURL,
     logging: ['query', 'error'],
@@ -122,10 +124,10 @@ async function fetchMediaWikiTask(jobData? : any) {
   const connection = await getConnectionManager().create(dbOptions).connect();
 
   const gameRepository = connection.getMongoRepository<Game>(Game);
-  const teamRepository = connection.getMongoRepository<Team>(Team);
+  const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
 
   const teamCursor = await connection
-    .getMongoRepository<Team>(Team)
+    .getMongoRepository<TeamEntity>(TeamEntity)
     .createEntityCursor({
       '_mediaWiki.switch': MediaWikiSwitch.Automatic,
     });
@@ -133,7 +135,7 @@ async function fetchMediaWikiTask(jobData? : any) {
   const apiClients = [];
 
   while (await teamCursor.hasNext()) {
-    const team : Team = await teamCursor.next();
+    const team : TeamEntity = await teamCursor.next();
     const game : Game = await gameRepository.findOneById(team.gameId);
 
     if (game) {

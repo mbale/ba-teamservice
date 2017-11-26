@@ -6,7 +6,7 @@ import * as Queue from 'bull';
 import { createConnection, Connection, ConnectionOptions } from 'typeorm';
 import wikiJS from 'wikijs';
 import apiGateway from './gateway/api';
-import Team from './entity/team';
+import TeamEntity from './entity/team';
 import TeamCompare from './compare/team-compare';
 
 dotenv.config();

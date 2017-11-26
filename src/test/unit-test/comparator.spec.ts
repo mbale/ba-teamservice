@@ -5,7 +5,7 @@ import * as Queue from 'bull';
 import * as dotenv from 'dotenv';
 import FetchMediaWiki from '../../task/fetch-mediawiki-data';
 
-import Team from '../../entity/team';
+import TeamEntity from '../../entity/team';
 import apiGateway from '../../gateway/api';
 
 dotenv.config();

@@ -1,5 +1,5 @@
 import { List } from 'immutable';
-import Team from '../entity/team';
+import TeamEntity from '../entity/team';
 import { Compare, CompareSettings, CompareModes, CompareMode } from 'ba-common';
 
 class TeamCompare extends Compare {
