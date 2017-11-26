@@ -13,7 +13,7 @@ import GameCompare from '../compare/game-compare';
 import { List, Map } from 'immutable';
 import TeamEntity from '../entity/team';
 import * as dotenv from 'dotenv';
-import Game from '../entity/game';
+import GameEntity from '../entity/game';
 import { ObjectId, ObjectID } from 'bson';
 import { dIConnection } from 'ba-common';
 
@@ -36,7 +36,7 @@ interface TeamCompareHTTPResponse {
 @JsonController('/api')
 export default class TeamController {
   constructor(
-    @dIConnection(MONGODB_URL, [TeamEntity, Game], Container) private _connection : Connection) {}
+    @dIConnection(MONGODB_URL, [TeamEntity, GameEntity], Container) private _connection : Connection) {}
 
   /**
    * Health check
@@ -84,11 +84,11 @@ export default class TeamController {
     }
 
     const connection = await this._connection;
-    const gameRepository = connection.getMongoRepository<Game>(Game);
+    const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
     const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
 
     const gameCursor = connection
-      .getMongoRepository<Game>(Game)
+      .getMongoRepository<GameEntity>(GameEntity)
       .createEntityCursor();
 
     const teamCompare = new TeamCompare();
@@ -98,10 +98,10 @@ export default class TeamController {
       Let's get game first
     */
 
-    let game : Game = null;
+    let game : GameEntity = null;
     
     while (await gameCursor.hasNext()) {
-      const gameInDb : Game = await gameCursor.next();
+      const gameInDb : GameEntity = await gameCursor.next();
       
       const related = gameCompare.runInSequence(gameName, gameInDb);
 
@@ -113,7 +113,7 @@ export default class TeamController {
     }
 
     if (!game) {
-      game = new Game();
+      game = new GameEntity();
       game.name = gameName;
       game = await gameRepository.save(game);
     }
@@ -204,7 +204,7 @@ export default class TeamController {
     @Ctx() ctx : Context) : Promise<Context> {
     let ids : ObjectId[] = [];
     const connection = await this._connection;
-    const gameRepository = connection.getMongoRepository<Game>(Game);
+    const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
     
     if (query.id) {
       if (query.id instanceof Array) {
@@ -214,7 +214,7 @@ export default class TeamController {
       }
     }
 
-    let games : Game[] = [];
+    let games : GameEntity[] = [];
     
     if (ids.length !== 0) {
       games = await gameRepository.findByIds(ids);
@@ -223,7 +223,7 @@ export default class TeamController {
     }
 
     ctx.body = games;
-    
+
     return ctx;
   }
 }

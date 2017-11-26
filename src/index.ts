@@ -1,5 +1,5 @@
 import fetchMediaWikiData from './task/fetch-mediawiki-data';
-import Game from './entity/game';
+import GameEntity from './entity/game';
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import * as Queue from 'bull';

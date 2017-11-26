@@ -1,8 +1,8 @@
-import { ServiceEntity } from 'ba-common';
+import { ServiceEntity, League } from 'ba-common';
 import { Entity, Column,  BeforeInsert } from 'typeorm';
 
 @Entity('games')
-class Game extends ServiceEntity {
+class GameEntity extends ServiceEntity implements GameEntity {
   @Column()
   slug : string;
 
@@ -12,4 +12,4 @@ class Game extends ServiceEntity {
   }
 }
 
-export default Game;
+export default GameEntity;

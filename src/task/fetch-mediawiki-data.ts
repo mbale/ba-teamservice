@@ -9,7 +9,7 @@ import { ObjectId } from 'bson';
 import axios from 'axios';
 import countryList from 'country-list';
 import TeamEntity, { MediaWikiSwitch, MediaWikiSourceType } from '../entity/team';
-import Game from '../entity/game';
+import GameEntity from '../entity/game';
 import { TeamSocialSiteType } from 'ba-common';
 
 dotenv.config();
@@ -116,14 +116,14 @@ analyseMediaWikiPage(client: typeof wikiJS, apiUrl : string, pageName, team : Te
  */
 async function fetchMediaWikiTask(jobData? : any) {
   const dbOptions : ConnectionOptions = {
-    entities: [Game, TeamEntity],
+    entities: [GameEntity, TeamEntity],
     type: 'mongodb',
     url: mongodbURL,
     logging: ['query', 'error'],
   };
   const connection = await getConnectionManager().create(dbOptions).connect();
 
-  const gameRepository = connection.getMongoRepository<Game>(Game);
+  const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
   const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
 
   const teamCursor = await connection
@@ -136,7 +136,7 @@ async function fetchMediaWikiTask(jobData? : any) {
 
   while (await teamCursor.hasNext()) {
     const team : TeamEntity = await teamCursor.next();
-    const game : Game = await gameRepository.findOneById(team.gameId);
+    const game : GameEntity = await gameRepository.findOneById(team.gameId);
 
     if (game) {
       const API_URLS = [];
