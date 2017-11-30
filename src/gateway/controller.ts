@@ -31,6 +31,14 @@ interface TeamCompareHTTPResponse {
   teamId : ObjectID;
 }
 
+/**
+ * Interface for GET - /games
+ * 
+ * @interface GetGamesQueryParams
+ */
+interface GetGamesQueryParams {
+  id?: ObjectID[] | ObjectID;
+}
 
 @Service()
 @JsonController('/api')
@@ -168,7 +176,7 @@ export default class TeamController {
    */
   @Get('/teams')
   public async fetchTeams(
-    @QueryParams() query : any, 
+    @QueryParams() query : any,
     @Ctx() ctx : Context) : Promise<Context> {
     
     let ids : ObjectId[] = [];
@@ -200,7 +208,7 @@ export default class TeamController {
 
   @Get('/games')
   public async getGameById(
-    @QueryParams() query : any,
+    @QueryParams() query : GetGamesQueryParams,
     @Ctx() ctx : Context) : Promise<Context> {
     let ids : ObjectId[] = [];
     const connection = await this._connection;
