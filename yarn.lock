@@ -451,6 +451,17 @@ ba-common@../ba-common:
     typedi "^0.5.2"
     typeorm "^0.1.6"
 
+"ba-common@git+ssh://git@github.com:MainBase/ba-common.git":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com:MainBase/ba-common.git#e4f9545a15693cd7bd30494a05cb4c4349501ee4"
+  dependencies:
+    axios "^0.17.1"
+    immutable "^3.8.2"
+    qs "^6.5.1"
+    talisman "^0.20.0"
+    typedi "^0.5.2"
+    typeorm "^0.1.6"
+
 babel-code-frame@^6.22.0, babel-code-frame@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-code-frame/-/babel-code-frame-6.26.0.tgz#63fd43f7dc1e3bb7ce35947db8fe369a3f58c74b"
