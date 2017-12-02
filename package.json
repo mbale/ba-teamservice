@@ -5,7 +5,7 @@
    "author": "Balazs Mocsai <me@bael.me>",
    "license": "MIT",
    "scripts": {
-      "start": "ts-node src/index.ts",
+      "start": "node build/main.js",
       "dev": "backpack dev",
       "doc": "typedoc --ignoreCompilerErrors --out doc src",
       "build": "backpack build",
