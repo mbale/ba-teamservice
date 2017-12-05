@@ -441,19 +441,9 @@ axios@^0.17.1:
     follow-redirects "^1.2.5"
     is-buffer "^1.1.5"
 
-ba-common@../ba-common:
-  version "1.0.0"
-  dependencies:
-    axios "^0.17.1"
-    immutable "^3.8.2"
-    qs "^6.5.1"
-    talisman "^0.20.0"
-    typedi "^0.5.2"
-    typeorm "^0.1.6"
-
 "ba-common@git+ssh://git@github.com:MainBase/ba-common.git":
   version "1.0.0"
-  resolved "git+ssh://git@github.com:MainBase/ba-common.git#e4f9545a15693cd7bd30494a05cb4c4349501ee4"
+  resolved "git+ssh://git@github.com:MainBase/ba-common.git#37a9e17c101c0a070cdc590ad5f759488673785d"
   dependencies:
     axios "^0.17.1"
     immutable "^3.8.2"

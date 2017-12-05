@@ -15,7 +15,7 @@ import TeamEntity from '../entity/team';
 import * as dotenv from 'dotenv';
 import GameEntity from '../entity/game';
 import { ObjectId, ObjectID } from 'bson';
-import { dIConnection } from 'ba-common';
+import { dIConnection, GetGamesQueryParams } from 'ba-common';
 
 dotenv.config();
 
@@ -29,15 +29,6 @@ interface TeamCompareHTTPRequestParams {
 interface TeamCompareHTTPResponse {
   gameId : ObjectID;
   teamId : ObjectID;
-}
-
-/**
- * Interface for GET - /games
- * 
- * @interface GetGamesQueryParams
- */
-interface GetGamesQueryParams {
-  id?: ObjectID[] | ObjectID;
 }
 
 @Service()
@@ -210,15 +201,21 @@ export default class TeamController {
   public async getGameById(
     @QueryParams() query : GetGamesQueryParams,
     @Ctx() ctx : Context) : Promise<Context> {
-    let ids : ObjectId[] = [];
+
     const connection = await this._connection;
     const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
+
+    /*
+      List all mode
+    */
+  
+    let ids : ObjectId[] = [];
     
-    if (query.id) {
-      if (query.id instanceof Array) {
-        ids = query.id.map(id => new ObjectId(id));
+    if (query.ids) {
+      if (query.ids instanceof Array) {
+        ids = query.ids.map(id => new ObjectId(id));
       } else {
-        ids.push(new ObjectId(query.id));
+        ids.push(new ObjectId(query.ids));
       }
     }
 
@@ -226,9 +223,30 @@ export default class TeamController {
     
     if (ids.length !== 0) {
       games = await gameRepository.findByIds(ids);
-    } else {
-      games = await gameRepository.find();
+      ctx.body = games;
+      return ctx;
     }
+
+    /*
+      Query mode
+    */
+
+    interface Query {
+      slug?: string;
+      name?: string;
+    }
+
+    const dbQuery: Query = {};
+
+    if (query.slug) {
+      dbQuery.slug = query.slug;
+    }
+
+    if (query.name) {
+      dbQuery.name = query.name;
+    }
+
+    games = await gameRepository.find(dbQuery);
 
     ctx.body = games;
 
