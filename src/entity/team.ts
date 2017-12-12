@@ -37,7 +37,7 @@ export interface MediaWikiSetting {
 
 
 @Entity('teams')
-export default class TeamEntity extends ServiceEntity implements Team {
+class TeamEntity extends ServiceEntity implements Team {
   @Column()
   info? : string = '';
 
@@ -66,3 +66,5 @@ export default class TeamEntity extends ServiceEntity implements Team {
     lastFetch: null,
   };
 }
+
+export default TeamEntity;

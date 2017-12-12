@@ -2,12 +2,6 @@ import GameCompare from '../compare/game-compare';
 import GameEntity from '../entity/game';
 import TeamCompare from '../compare/team-compare';
 import TeamEntity from '../entity/team';
-import {
-  Connection,
-  ConnectionManager,
-  ConnectionOptions,
-  createConnection,
-  } from 'typeorm';
 import { GetGamesQueryParams, HTTPController } from 'ba-common';
 import { inject, injectable } from 'inversify';
 import { List, Map } from 'immutable';
@@ -82,9 +76,10 @@ class TeamHTTPController extends HTTPController {
       throw new BadRequestError('Empty values');
     }
 
-    const connection = await this.connection.get();
-    const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
+    const connection = this.connection.get();
     const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
+    const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
+    
 
     const gameCursor = connection
       .getMongoRepository<GameEntity>(GameEntity)
@@ -121,8 +116,7 @@ class TeamHTTPController extends HTTPController {
       Now let's find the team
     */
 
-    const teamCursor = connection
-      .getMongoRepository('Team')
+    const teamCursor = teamRepository
       .createEntityCursor({
         gameId: game._id,
       });
@@ -152,9 +146,7 @@ class TeamHTTPController extends HTTPController {
       teamId: team._id,
     };
 
-    res.send(response);
-
-    return res;
+    return res.send(response);
   }
 
   /**
@@ -182,7 +174,7 @@ class TeamHTTPController extends HTTPController {
 
     let teams : TeamEntity[] = [];
 
-    const connection = await this.connection.get();
+    const connection = this.connection.get();
     const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
 
     if (ids.length !== 0) {

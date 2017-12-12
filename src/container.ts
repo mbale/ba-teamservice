@@ -4,7 +4,7 @@ import * as winston from 'winston';
 import GameEntity from './entity/game';
 import TeamEntity from './entity/team';
 import TeamHTTPController from './gateway/api';
-import { ConnectionManager, ConnectionOptions } from 'typeorm';
+import { ConnectionManager, ConnectionOptions, useContainer as useContainerDB } from 'typeorm';
 import { Container } from 'inversify';
 import { useContainer, useExpressServer } from 'routing-controllers';
 
@@ -78,6 +78,10 @@ async function main() {
 
   // routing controllers will get any resolution from our global store
   useContainer(container);
+  // useContainerDB(container, {
+  //   fallback: false,
+  //   fallbackOnErrors: false,
+  // });
 
   return container;
 }
