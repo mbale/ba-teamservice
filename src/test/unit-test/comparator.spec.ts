@@ -6,7 +6,7 @@ import * as dotenv from 'dotenv';
 import FetchMediaWiki from '../../task/fetch-mediawiki-data';
 
 import TeamEntity from '../../entity/team';
-import apiGateway from '../../gateway/api';
+// import apiGateway from '../../gateway/api';
 
 dotenv.config();
 
