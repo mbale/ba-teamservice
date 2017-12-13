@@ -7,6 +7,8 @@ import TeamHTTPController from './gateway/api';
 import { ConnectionManager, ConnectionOptions, useContainer as useContainerDB } from 'typeorm';
 import { Container } from 'inversify';
 import { useContainer, useExpressServer } from 'routing-controllers';
+import 'winston-mongodb';
+ // inject
 
 dotenv.config();
 
@@ -53,11 +55,9 @@ async function main() {
   };
 
   const connectionManager = new ConnectionManager();
-  // initiate connection so binding is awaiting until it's done 
-  // => we don't need initializer call in every contained instance
   await connectionManager.create(dbOptions).connect();
 
-  container.bind(ConnectionManager).toConstantValue(connectionManager);
+  container.bind('connectionmanager').toConstantValue(connectionManager);
 
   /*
     REST API
@@ -78,10 +78,10 @@ async function main() {
 
   // routing controllers will get any resolution from our global store
   useContainer(container);
-  // useContainerDB(container, {
-  //   fallback: false,
-  //   fallbackOnErrors: false,
-  // });
+  useContainerDB(container, {
+    fallback: false,
+    fallbackOnErrors: false,
+  });
 
   return container;
 }

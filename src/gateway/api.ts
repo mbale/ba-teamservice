@@ -2,7 +2,7 @@ import GameCompare from '../compare/game-compare';
 import GameEntity from '../entity/game';
 import TeamCompare from '../compare/team-compare';
 import TeamEntity from '../entity/team';
-import { GetGamesQueryParams, HTTPController } from 'ba-common';
+import { GetGamesQueryParams, HTTPController, CompareResponseBody } from 'ba-common';
 import { inject, injectable } from 'inversify';
 import { List, Map } from 'immutable';
 import { ObjectId } from 'mongodb';
@@ -15,16 +15,7 @@ import {
   BadRequestError,
   Res,
 } from 'routing-controllers';
-
-// interface TeamCompareHTTPRequestParams {
-//   'team-name': string;
-//   'game-name': string;
-// }
-
-// interface TeamCompareHTTPResponse {
-//   gameId : ObjectID;
-//   teamId : ObjectID;
-// }
+import { CompareQueryParams } from 'ba-common/types/base/team-http-service';
 
 @injectable()
 @JsonController('/api')
@@ -40,7 +31,6 @@ class TeamHTTPController extends HTTPController {
   public async ping(
     @Res() res : Response,
   ) {
-    console.log(this)
     return res.send('ok');
   }
 
@@ -56,7 +46,7 @@ class TeamHTTPController extends HTTPController {
    */
   @Post('/compare')
   public async compareTeamName(
-    @QueryParams() names : any,
+    @QueryParams() names : CompareQueryParams,
     @Res() res : Response) {
 
     if (!names) {
@@ -76,7 +66,7 @@ class TeamHTTPController extends HTTPController {
       throw new BadRequestError('Empty values');
     }
 
-    const connection = this.connection.get();
+    const connection = this.connectionManager.get();
     const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
     const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
     
@@ -141,7 +131,7 @@ class TeamHTTPController extends HTTPController {
       team = await teamRepository.save(team);
     }
 
-    const response = {
+    const response: CompareResponseBody = {
       gameId: game._id,
       teamId: team._id,
     };
@@ -174,7 +164,7 @@ class TeamHTTPController extends HTTPController {
 
     let teams : TeamEntity[] = [];
 
-    const connection = this.connection.get();
+    const connection = this.connectionManager.get();
     const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
 
     if (ids.length !== 0) {
@@ -191,7 +181,7 @@ class TeamHTTPController extends HTTPController {
   public async getGameById(
     @QueryParams() query : GetGamesQueryParams,
     @Res() res : Response) {
-    const connection = this.connection.get();
+    const connection = this.connectionManager.get();
     const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
 
     /*

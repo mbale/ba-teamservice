@@ -118,7 +118,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/winston@^2.3.2":
+"@types/winston@^2.3.2", "@types/winston@^2.3.7":
   version "2.3.7"
   resolved "https://registry.yarnpkg.com/@types/winston/-/winston-2.3.7.tgz#2ea18b2dc772d459b6af0f587447704df31afec2"
   dependencies:
@@ -365,18 +365,32 @@ axios@^0.17.1:
     follow-redirects "^1.2.5"
     is-buffer "^1.1.5"
 
-"ba-common@git+ssh://git@github.com:MainBase/ba-common.git":
+ba-common@../ba-common:
   version "1.0.0"
-  resolved "git+ssh://git@github.com:MainBase/ba-common.git#c31c49b13e720dcd0aa61dcfe14845c671e86368"
   dependencies:
     axios "^0.17.1"
     bull "^3.3.7"
+    extendo-error "^1.0.1"
     immutable "^3.8.2"
     inversify "^4.6.0"
     qs "^6.5.1"
     talisman "^0.20.0"
-    typedi "^0.5.2"
-    typeorm "^0.1.7"
+    typeorm "^0.1.8"
+    winston "^2.4.0"
+    winston-mongodb "^3.0.2"
+
+"ba-common@git+ssh://git@github.com:MainBase/ba-common.git":
+  version "1.0.0"
+  resolved "git+ssh://git@github.com:MainBase/ba-common.git#f1e6f2ce15d1708de18dffe215bdba27566d389e"
+  dependencies:
+    axios "^0.17.1"
+    bull "^3.3.7"
+    extendo-error "^1.0.1"
+    immutable "^3.8.2"
+    inversify "^4.6.0"
+    qs "^6.5.1"
+    talisman "^0.20.0"
+    typeorm "^0.1.8"
     winston "^2.4.0"
     winston-mongodb "^3.0.2"
 
@@ -4639,10 +4653,6 @@ type-is@~1.6.15:
     media-typer "0.3.0"
     mime-types "~2.1.15"
 
-typedi@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/typedi/-/typedi-0.5.2.tgz#e1f67409bf0d19be86f072ff88ae30db15f61b74"
-
 typedoc-default-themes@^0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/typedoc-default-themes/-/typedoc-default-themes-0.5.0.tgz#6dc2433e78ed8bea8e887a3acde2f31785bd6227"
@@ -4677,13 +4687,14 @@ typemoq@^2.1.0:
     lodash "^4.17.4"
     postinstall-build "^5.0.1"
 
-typeorm@^0.1.6, typeorm@^0.1.7:
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/typeorm/-/typeorm-0.1.7.tgz#40fdb0ff1d5f69560a43a9b21297cb293152a8e2"
+typeorm@^0.1.8:
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/typeorm/-/typeorm-0.1.8.tgz#a0634ba992e970984b74fccd7f53c2b362e555ee"
   dependencies:
     app-root-path "^2.0.1"
     chalk "^2.0.1"
     cli-highlight "^1.1.4"
+    debug "^3.1.0"
     dotenv "^4.0.0"
     glob "^7.1.2"
     js-yaml "^3.8.4"
