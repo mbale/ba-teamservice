@@ -6,7 +6,7 @@ import { GetGamesQueryParams, HTTPController, CompareResponseBody } from 'ba-com
 import { inject, injectable } from 'inversify';
 import { List, Map } from 'immutable';
 import { ObjectId } from 'mongodb';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { 
   JsonController,
   Get, Ctx, Post, 
@@ -14,8 +14,11 @@ import {
   QueryParam,
   BadRequestError,
   Res,
+  Middleware,
+  ExpressMiddlewareInterface,
 } from 'routing-controllers';
 import { CompareQueryParams } from 'ba-common/types/base/team-http-service';
+import { LoggerInstance } from 'winston';
 
 @injectable()
 @JsonController('/api')

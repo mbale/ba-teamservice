@@ -6,6 +6,7 @@ import TeamEntity from './entity/team';
 import TeamHTTPController from './gateway/api';
 import { ConnectionManager, ConnectionOptions, useContainer as useContainerDB } from 'typeorm';
 import { Container } from 'inversify';
+import { LoggingMiddleware } from 'ba-common';
 import { useContainer, useExpressServer } from 'routing-controllers';
 import 'winston-mongodb';
  // inject
@@ -64,12 +65,14 @@ async function main() {
   */
 
   container.bind<TeamHTTPController>(TeamHTTPController).toSelf();
+  container.bind(LoggingMiddleware).toSelf();
   
   const app = express();
   
   useExpressServer(app, {
     // cors: true,
     validation: true,
+    middlewares: [LoggingMiddleware],
   });
     
   app.listen(HTTP_PORT, () => {
