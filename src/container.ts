@@ -39,10 +39,9 @@ async function main() {
   });
 
   logger.transports.mongodb.on('error', err => console.log(err));
-
-  logger.unhandleExceptions(winston.transports.MongoDB);
-
+  logger.unhandleExceptions(logger.transports.MongoDB);
   container.bind('logger').toConstantValue(logger);
+  logger.info(`Logging's OK`);
 
   /*
     Database
@@ -59,13 +58,16 @@ async function main() {
   await connectionManager.create(dbOptions).connect();
 
   container.bind('connectionmanager').toConstantValue(connectionManager);
+  logger.info(`DB's OK`);
 
   /*
     REST API
   */
 
   container.bind<TeamHTTPController>(TeamHTTPController).toSelf();
+  logger.info(`TeamHTTPService's OK`);
   container.bind(LoggingMiddleware).toSelf();
+  logger.info(`LoggingMiddleware's OK`);
   
   const app = express();
   
@@ -76,7 +78,7 @@ async function main() {
   });
     
   app.listen(HTTP_PORT, () => {
-    logger.info(`Listening on ${HTTP_PORT}`);
+    logger.info(`API's listening on ${HTTP_PORT}`);
   });
 
   // routing controllers will get any resolution from our global store
@@ -85,6 +87,8 @@ async function main() {
     fallback: false,
     fallbackOnErrors: false,
   });
+
+  logger.info(`Container's bootstrapped`);
 
   return container;
 }
