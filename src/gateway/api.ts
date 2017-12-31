@@ -229,7 +229,7 @@ class TeamHTTPController extends HTTPController {
 
     games = await gameRepository.find(dbQuery);
 
-    res.send(games);
+    return res.send(games);
   }
 }
 
