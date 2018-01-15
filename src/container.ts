@@ -46,7 +46,7 @@ async function main() {
   /*
     Database
   */
-  
+
   const dbOptions : ConnectionOptions = {
     entities: [TeamEntity, GameEntity],
     type: 'mongodb',
@@ -68,15 +68,15 @@ async function main() {
   logger.info(`TeamHTTPService's OK`);
   container.bind(LoggingMiddleware).toSelf();
   logger.info(`LoggingMiddleware's OK`);
-  
+
   const app = express();
-  
+
   useExpressServer(app, {
     // cors: true,
     validation: true,
     middlewares: [LoggingMiddleware],
   });
-    
+
   app.listen(HTTP_PORT, () => {
     logger.info(`API's listening on ${HTTP_PORT}`);
   });

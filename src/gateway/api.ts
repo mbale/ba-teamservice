@@ -229,6 +229,8 @@ class TeamHTTPController extends HTTPController {
 
     games = await gameRepository.find(dbQuery);
 
+    games = games.filter(game => game.slug !== '');
+
     return res.send(games);
   }
 }
