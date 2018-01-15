@@ -7,9 +7,9 @@ import { inject, injectable } from 'inversify';
 import { List, Map } from 'immutable';
 import { ObjectId } from 'mongodb';
 import { Response, Request } from 'express';
-import { 
+import {
   JsonController,
-  Get, Ctx, Post, 
+  Get, Ctx, Post,
   Body, QueryParams,
   QueryParam,
   BadRequestError,
@@ -25,9 +25,9 @@ import { LoggerInstance } from 'winston';
 class TeamHTTPController extends HTTPController {
   /**
    * Health check
-   * 
-   * @param {Context} ctx 
-   * @returns 
+   *
+   * @param {Context} ctx
+   * @returns
    * @memberof TeamController
    */
   @Get('/')
@@ -40,11 +40,11 @@ class TeamHTTPController extends HTTPController {
   /**
    * Check if we have a team with such game already
    * If not saves it
-   * 
-   * @param {string} teamName 
-   * @param {string} gameName 
-   * @param {Context} ctx 
-   * @returns {Promise<Context>} 
+   *
+   * @param {string} teamName
+   * @param {string} gameName
+   * @param {Context} ctx
+   * @returns {Promise<Context>}
    * @memberof TeamController
    */
   @Post('/compare')
@@ -59,7 +59,7 @@ class TeamHTTPController extends HTTPController {
     if (!names['team-name'] || !names['game-name']) {
       throw new BadRequestError('Missing one or two key');
     }
-    
+
     const {
       'game-name': gameName,
       'team-name': teamName,
@@ -72,7 +72,7 @@ class TeamHTTPController extends HTTPController {
     const connection = this.connectionManager.get();
     const teamRepository = connection.getMongoRepository<TeamEntity>(TeamEntity);
     const gameRepository = connection.getMongoRepository<GameEntity>(GameEntity);
-    
+
 
     const gameCursor = connection
       .getMongoRepository<GameEntity>(GameEntity)
@@ -86,10 +86,10 @@ class TeamHTTPController extends HTTPController {
     */
 
     let game : GameEntity = null;
-    
+
     while (await gameCursor.hasNext()) {
       const gameInDb : GameEntity = await gameCursor.next();
-      
+
       const related = gameCompare.runInSequence(gameName, gameInDb);
 
       if (related) {
@@ -115,7 +115,7 @@ class TeamHTTPController extends HTTPController {
       });
 
     let team : TeamEntity = null;
-    
+
     while (await teamCursor.hasNext()) {
       const team : TeamEntity = await teamCursor.next();
       const related = teamCompare.runInSequence(teamName, team);
@@ -144,19 +144,19 @@ class TeamHTTPController extends HTTPController {
 
   /**
    * Fetch or query teams
-   * 
-   * @param {*} query 
-   * @param {Context} ctx 
-   * @returns {Promise<Context>} 
+   *
+   * @param {*} query
+   * @param {Context} ctx
+   * @returns {Promise<Context>}
    * @memberof TeamController
    */
   @Get('/teams')
   public async fetchTeams(
     @QueryParams() query : any,
     @Res() res: Response) {
-    
+
     let ids : ObjectId[] = [];
-    
+
     if (query.id) {
       if (query.id instanceof Array) {
         ids = query.id.map(id => new ObjectId(id));
@@ -190,9 +190,9 @@ class TeamHTTPController extends HTTPController {
     /*
       List all mode
     */
-  
+
     let ids : ObjectId[] = [];
-    
+
     if (query.ids) {
       if (query.ids instanceof Array) {
         ids = query.ids.map(id => new ObjectId(id));
@@ -202,9 +202,10 @@ class TeamHTTPController extends HTTPController {
     }
 
     let games : GameEntity[] = [];
-    
+
     if (ids.length !== 0) {
       games = await gameRepository.findByIds(ids);
+      games = games.filter(game => game.slug !== '');
       return res.send(games);
     }
 
@@ -228,8 +229,6 @@ class TeamHTTPController extends HTTPController {
     }
 
     games = await gameRepository.find(dbQuery);
-
-    games = games.filter(game => game.slug !== '');
 
     return res.send(games);
   }
