@@ -6,13 +6,17 @@ import TeamEntity from './entity/team';
 import TeamHTTPController from './gateway/api';
 import { ConnectionManager, ConnectionOptions, useContainer as useContainerDB } from 'typeorm';
 import { Container } from 'inversify';
-import { LoggingMiddleware } from 'ba-common';
+import { LoggingMiddleware, rabbitMQConfig } from 'ba-common';
 import { useContainer, useExpressServer } from 'routing-controllers';
 import 'winston-mongodb';
+import * as rabbot from 'rabbot';
+import { ObjectId } from 'mongodb';
+import { initRabbitMQ } from './gateway/rabbitmq';
  // inject
 
 dotenv.config();
 
+const RABBITMQ_URI = process.env.RABBITMQ_URI;
 const HTTP_PORT = Number.parseInt(process.env.TEAM_SERVICE_API_PORT, 10);
 const MONGODB_URL = process.env.TEAM_SERVICE_MONGODB_URL;
 
@@ -59,6 +63,36 @@ async function main() {
 
   container.bind('connectionmanager').toConstantValue(connectionManager);
   logger.info(`DB's OK`);
+
+  /*
+    RabbitMQ layer
+  */
+
+  const exchanges = [
+    {
+      name: 'team-service',
+      type: 'topic',
+      persistent: true,
+    },
+  ];
+
+  const queues = [
+    {
+      name: 'team-service', autoDelete: true, subscribe: true,
+    },
+  ];
+
+  const bindings = [
+    {
+      exchange: 'team-service', target: 'team-service', keys: ['get-by-ids'],
+    },
+  ];
+
+  await rabbot.configure(
+    rabbitMQConfig(RABBITMQ_URI, exchanges, queues, bindings,
+  ));
+
+  initRabbitMQ(container);
 
   /*
     REST API
