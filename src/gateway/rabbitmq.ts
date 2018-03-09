@@ -7,7 +7,7 @@ import { Container } from 'inversify';
 
 
 export function initRabbitMQ(container: Container) {
-  rabbot.handle('get-by-ids', async ({ body, reply }) => {
+  rabbot.handle('get-teams-by-ids', async ({ body, reply }) => {
     const teamIds = body.map(id => new ObjectId(id));
 
     const repository = container.get<ConnectionManager>('connectionmanager')
