@@ -84,7 +84,11 @@ async function main() {
 
   const bindings = [
     {
-      exchange: 'team-service', target: 'team-service', keys: ['get-teams-by-ids'],
+      exchange: 'team-service', target: 'team-service',
+      keys: [
+        'get-teams-by-ids',
+        'get-games-by-ids',
+      ],
     },
   ];
 
