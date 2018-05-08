@@ -1,4 +1,6 @@
-FROM node:latest
+FROM node:8-alpine
+
+RUN apk update && apk add openssh && apk add git
 
 ARG GIT_COMMON_SSH_KEY
 
@@ -6,7 +8,7 @@ ARG GIT_COMMON_SSH_KEY
 RUN mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
 # Getting ssh key
-RUN echo $GIT_COMMON_SSH_KEY | base64 --decode > /root/.ssh/ba_common_git
+RUN echo $GIT_COMMON_SSH_KEY | base64 -d > /root/.ssh/ba_common_git
 RUN chmod 0600 /root/.ssh/ba_common_git
 
 # Starting packages installing
