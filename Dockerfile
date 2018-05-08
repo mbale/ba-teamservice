@@ -1,6 +1,6 @@
 FROM node:8-alpine
 
-RUN apk update && apk add openssh && apk add git
+RUN apk update && apk add openssh && apk add git && apk add python
 
 ARG GIT_COMMON_SSH_KEY
 
