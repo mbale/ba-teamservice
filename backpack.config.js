@@ -3,11 +3,11 @@ module.exports = {
       config.entry.main = [
         './src/index.ts'
       ]
-  
+
       config.resolve = {
         extensions: [".ts", ".js", ".json"]
       };
-  
+
       config.module.rules.push(
         {
           test: /\.ts$/,
@@ -15,7 +15,7 @@ module.exports = {
           loader: 'ts-loader'
         }
       );
-  
+
       return config
     }
 }

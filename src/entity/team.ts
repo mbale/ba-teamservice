@@ -58,13 +58,6 @@ class TeamEntity extends ServiceEntity implements Team {
 
   @Column()
   logo? : string = '';
-
-  @Column()
-  _mediaWiki : MediaWikiSetting = {
-    switch: MediaWikiSwitch.Automatic,
-    sources: [],
-    lastFetch: null,
-  };
 }
 
 export default TeamEntity;
